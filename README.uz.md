@@ -167,8 +167,10 @@ CONSTRAINT bookings_no_overlap EXCLUDE USING gist (
 ) WHERE (status <> 'cancelled')
 ```
 
-Ikki soʻrov bir vaqtda kelsa, bittasining yozuvi `23P01` (yoki `40P01` deadlock) bilan rad
-etiladi va servis `409 SLOT_UNAVAILABLE` qaytaradi; *istalgan usta* tanlanganda esa keyingi boʻsh
+Bitta ustaga yozayotgan tranzaksiyalar qisqa advisory lock oladi — parallel soʻrovlar
+exclusion indeksida bir-birini kutib qolib ketmasdan, navbat bilan oʻtadi. Ikki soʻrov bir
+vaqtda kelsa, yutqazganining yozuvi `23P01` bilan rad etiladi (`40P01` deadlock ham xuddi shunday
+hisoblanadi) va servis `409 SLOT_UNAVAILABLE` qaytaradi; *istalgan usta* tanlanganda esa keyingi boʻsh
 usta bilan qayta urinadi. Integratsion testlar bitta usta va vaqt uchun 20 ta parallel soʻrov
 yuborib, faqat bitta navbat yaratilganini tekshiradi.
 

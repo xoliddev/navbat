@@ -17,7 +17,7 @@ import {
   transition,
   utcToZoned,
 } from '@navbat/core';
-import type { Transaction } from 'kysely';
+import { sql, type Transaction } from 'kysely';
 import {
   bookableStaffIds,
   dayWindow,
@@ -162,6 +162,19 @@ export async function updateCustomerContact(
     .execute();
 }
 
+/**
+ * Serialises writers per master. The exclusion constraint alone is already correct, but
+ * concurrent conflicting inserts can deadlock (each waits for the other's index entry) and
+ * PostgreSQL resolves that only after deadlock_timeout. A transaction-scoped advisory lock makes
+ * racers queue instead, so the loser fails fast with a clean 23P01. Locks are taken in a stable
+ * order so two masters never deadlock each other.
+ */
+export async function lockMasters(trx: Db, staffIds: string[]): Promise<void> {
+  for (const id of [...new Set(staffIds)].sort()) {
+    await sql`SELECT pg_advisory_xact_lock(hashtext(${`navbat:staff:${id}`}))`.execute(trx);
+  }
+}
+
 async function uniqueCode(db: Db, businessId: string, random?: () => number): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const code = bookingCode(random);
@@ -220,6 +233,7 @@ async function insertBooking(
   option: SlotOption,
   customerId: string,
 ): Promise<{ id: string; deposit: number }> {
+  await lockMasters(trx, [option.staffId]);
   const staff = await trx
     .selectFrom('staff')
     .select(['branch_id'])
@@ -511,6 +525,7 @@ export async function rescheduleBooking(ctx: AppContext, input: RescheduleInput)
   const option = fit.option;
   try {
     return await db.transaction().execute(async (trx) => {
+      await lockMasters(trx, [snap.staffId, option.staffId]);
       await trx
         .updateTable('bookings')
         .set({

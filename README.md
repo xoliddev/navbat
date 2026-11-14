@@ -160,8 +160,9 @@ CONSTRAINT bookings_no_overlap EXCLUDE USING gist (
 ) WHERE (status <> 'cancelled')
 ```
 
-When two requests race, one insert fails with `23P01` (or `40P01` — under an exclusion
-constraint two conflicting inserts can also end in a deadlock) and the service answers
+Writers for one master also take a transaction-scoped advisory lock, so racing requests queue
+instead of deadlocking on the exclusion index. When two requests race, the loser's insert fails
+with `23P01` (a `40P01` deadlock is treated the same way, just in case) and the service answers
 `409 SLOT_UNAVAILABLE`; for *any master* it retries with the next free master. The integration
 suite fires 20 parallel requests for the same master and slot and asserts exactly one booking.
 
