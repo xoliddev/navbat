@@ -1,0 +1,66 @@
+/*
+ * Navbat visual identity
+ * - Rishtan cobalt (the blue of Fergana ceramics) is the action colour.
+ * - Firuza (turquoise) means "free time" everywhere: heatmap, free slots.
+ * - Saffron marks the queue ticket — the one memorable object in the product.
+ * - Unbounded for numbers and headings (times read like a departures board), Onest for UI.
+ * Inside Telegram the surface colours come from themeParams; brand colours stay.
+ */
+:root {
+  --font-display: 'Unbounded Variable', 'Unbounded', system-ui, sans-serif;
+  --font-ui: 'Onest Variable', 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --cobalt: #2346d4;
+  --cobalt-ink: #1a3299;
+  --firuza: #0fa396;
+  --saffron: #f2b233;
+  --anor: #cf3149;
+  --ink: #141a33;
+
+  --bg: #eef1f7;
+  --surface: #ffffff;
+  --surface-2: #f6f7fb;
+  --text: #141a33;
+  --muted: #5b6380;
+  --line: #dde2ee;
+  --accent: var(--cobalt);
+  --accent-text: #ffffff;
+  --free-0: transparent;
+  --free-1: #cdeeea;
+  --free-2: #8fdcd3;
+  --free-3: #3fc0b3;
+  --free-4: #0fa396;
+
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 22px;
+  --shadow-1: 0 1px 0 rgba(20, 26, 51, 0.06), 0 2px 8px -4px rgba(20, 26, 51, 0.18);
+  --shadow-2: 0 18px 40px -18px rgba(20, 26, 51, 0.45);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --cobalt: #6f8bff;
+  --cobalt-ink: #9db0ff;
+  --firuza: #2fd0c1;
+  --saffron: #f5c04f;
+  --anor: #ff6b80;
+  --bg: #0d1330;
+  --surface: #161e44;
+  --surface-2: #1c2552;
+  --text: #e9edf9;
+  --muted: #9aa3c4;
+  --line: #2a3566;
+  --accent: var(--cobalt);
+  --accent-text: #0d1330;
+  --free-1: #154a55;
+  --free-2: #18706f;
+  --free-3: #1f9f95;
+  --free-4: #2fd0c1;
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
