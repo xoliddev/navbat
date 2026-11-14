@@ -35,3 +35,14 @@ export function pgCode(e: unknown): string | undefined {
 
 export const EXCLUSION_VIOLATION = '23P01';
 export const UNIQUE_VIOLATION = '23505';
+/**
+ * Two transactions inserting conflicting rows under an exclusion constraint may each wait for
+ * the other; PostgreSQL then aborts one with "deadlock detected" instead of 23P01. Both mean
+ * "someone else took this time".
+ */
+export const DEADLOCK = '40P01';
+
+export function isSlotConflict(e: unknown): boolean {
+  const code = pgCode(e);
+  return code === EXCLUSION_VIOLATION || code === DEADLOCK;
+}

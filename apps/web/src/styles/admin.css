@@ -630,7 +630,8 @@
   font-size: 13px;
 }
 .kpi b {
-  font-size: 22px;
+  font-size: clamp(18px, 1.7vw, 22px);
+  overflow-wrap: anywhere;
   font-weight: 600;
 }
 .kpi small {
@@ -759,7 +760,7 @@
     scrollbar-width: none;
   }
   .admin.embedded .admin-nav {
-    top: 92px;
+    top: 0;
   }
   .admin-nav a {
     flex-direction: column;

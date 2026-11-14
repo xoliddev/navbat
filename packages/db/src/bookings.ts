@@ -27,7 +27,7 @@ import {
 } from './availability.js';
 import { loadBooking, loadBookings, toCard } from './booking-read.js';
 import { getBusiness } from './catalog.js';
-import { type AppContext, type Db, EXCLUSION_VIOLATION, json, ms, pgCode } from './context.js';
+import { type AppContext, type Db, isSlotConflict, json, ms, pgCode } from './context.js';
 import type { BookingDTO, BusinessDTO, CreatedBookingDTO } from './dto.js';
 import {
   cancelPendingJobs,
@@ -297,7 +297,7 @@ export async function createBooking(ctx: AppContext, input: CreateBookingInput):
   const candidates = await bookableStaffIds(db, business.id, input.staffId);
   const excluded = new Set<string>();
 
-  for (let attempt = 0; attempt <= candidates.length; attempt++) {
+  for (let attempt = 0; attempt <= candidates.length + 3; attempt++) {
     const pool = candidates.filter((id) => !excluded.has(id));
     const date = utcToZoned(input.start, tz).date;
     const availability = await loadAvailability(db, business.id, pool, dayWindow(date, tz));
@@ -376,9 +376,11 @@ export async function createBooking(ctx: AppContext, input: CreateBookingInput):
       });
       return result;
     } catch (e) {
-      if (pgCode(e) === EXCLUSION_VIOLATION) {
+      if (isSlotConflict(e)) {
         if (input.staffId) throw new DomainError('SLOT_UNAVAILABLE', 'Someone has just taken this time');
-        excluded.add(option.staffId);
+        // Exclusion violation: that master is taken. Deadlock: we don't know who won, so just
+        // re-read availability (the winner is committed by now) and try again.
+        if (pgCode(e) !== '40P01') excluded.add(option.staffId);
         continue;
       }
       throw e;
@@ -572,8 +574,7 @@ export async function rescheduleBooking(ctx: AppContext, input: RescheduleInput)
       return booking;
     });
   } catch (e) {
-    if (pgCode(e) === EXCLUSION_VIOLATION)
-      throw new DomainError('SLOT_UNAVAILABLE', 'Someone has just taken this time');
+    if (isSlotConflict(e)) throw new DomainError('SLOT_UNAVAILABLE', 'Someone has just taken this time');
     throw e;
   }
 }

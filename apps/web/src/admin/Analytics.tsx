@@ -13,6 +13,16 @@ import { errorText, useI18n } from '../i18n';
 import { downloadText, useAsync, useBackend, useToast } from '../lib';
 import { useAdminI18n } from './strings';
 
+const MLN: Record<string, [string, string]> = { uz: ['mln', 'soʻm'], ru: ['млн', 'сум'], en: ['M', 'UZS'] };
+
+/** 47 265 000 → "47.3 mln soʻm" so big totals fit a tile. */
+function money(amount: number, lang: 'uz' | 'ru' | 'en') {
+  if (Math.abs(amount) < 10_000_000) return formatMoney(amount, lang);
+  const [m, cur] = MLN[lang]!;
+  const v = (amount / 1_000_000).toFixed(1).replace('.', lang === 'en' ? '.' : ',');
+  return lang === 'en' ? `${v}${m} ${cur}` : `${v} ${m} ${cur}`;
+}
+
 function pct(x: number) {
   return `${Math.round(x * 100)}%`;
 }
@@ -71,9 +81,9 @@ export function AnalyticsView({ catalog }: { catalog: CatalogDTO }) {
             </div>
             <div className="kpi accent">
               <span>{a.revenue}</span>
-              <b className="num">{formatMoney(d.totals.revenue, lang)}</b>
+              <b className="num">{money(d.totals.revenue, lang)}</b>
               <small>
-                {a.upcoming}: {formatMoney(d.totals.expectedRevenue, lang)}
+                {a.upcoming}: {money(d.totals.expectedRevenue, lang)}
               </small>
             </div>
             <div className="kpi">

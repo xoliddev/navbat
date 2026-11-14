@@ -6,6 +6,7 @@ import {
   addDays,
   availableIntervals,
   bookingCode,
+  isoWeekday,
   type LocalizedText,
   type StaffAvailability,
   todayIn,
@@ -497,6 +498,8 @@ export async function seedDemo(db: Kysely<DB>, opts: SeedOptions): Promise<SeedR
 
   // Time off: a business-wide sanitary day, a short vacation and a training block.
   const holiday = addDays(today, 9);
+  // Jasur's training block: the next day he works (he is off on Sundays).
+  const blockDay = isoWeekday(addDays(today, 1)) === 7 ? addDays(today, 2) : addDays(today, 1);
   const timeOff = [
     {
       business_id: businessId,
@@ -518,8 +521,8 @@ export async function seedDemo(db: Kysely<DB>, opts: SeedOptions): Promise<SeedR
       business_id: businessId,
       staff_id: masterIds[0]!,
       kind: 'block' as const,
-      start_at: new Date(zonedToUtc(addDays(today, 1), h(16), tz)),
-      end_at: new Date(zonedToUtc(addDays(today, 1), h(17), tz)),
+      start_at: new Date(zonedToUtc(blockDay, h(16), tz)),
+      end_at: new Date(zonedToUtc(blockDay, h(17), tz)),
       reason: 'Oʻquv mashgʻuloti',
     },
   ];

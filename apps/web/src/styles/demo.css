@@ -296,6 +296,7 @@
 
 @media (max-width: 920px) {
   .demo-bar {
+    position: static;
     padding: 8px 12px;
     gap: 8px;
   }
@@ -330,7 +331,7 @@
     background: var(--surface);
     border-bottom: 1px solid var(--line);
     position: sticky;
-    top: 92px;
+    top: 0;
     z-index: 35;
   }
   .demo-tabs button {
@@ -374,4 +375,15 @@
     border: 0;
     height: calc(100dvh - 140px);
   }
+}
+
+:root[data-theme="dark"] .demo-bar {
+  background: #070b1f;
+  border-bottom: 1px solid var(--line);
+}
+:root[data-theme="dark"] .phone {
+  background: #050817;
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 40px 80px -40px rgba(0, 0, 0, 0.9);
 }
