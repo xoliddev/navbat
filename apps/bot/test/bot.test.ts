@@ -11,7 +11,7 @@ import {
 } from '@navbat/db';
 import { createPGlite, kyselyFromPGlite } from '@navbat/db/pglite';
 import { GrammyError } from 'grammy';
-import type { Update } from 'grammy/types';
+import type { Update, UserFromGetMe } from 'grammy/types';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { appLink, createBot } from '../src/bot.js';
 import { processDueNotifications, queueDigests } from '../src/worker.js';
@@ -27,7 +27,7 @@ interface Call {
   payload: Record<string, unknown>;
 }
 
-const BOT_INFO = {
+const BOT_INFO: UserFromGetMe = {
   id: 42,
   is_bot: true as const,
   first_name: 'Navbat',
@@ -37,6 +37,10 @@ const BOT_INFO = {
   supports_inline_queries: false,
   can_connect_to_business: false,
   has_main_web_app: false,
+  has_topics_enabled: false,
+  allows_users_to_create_topics: false,
+  can_manage_bots: false,
+  supports_join_request_queries: false,
 };
 
 async function setup() {
