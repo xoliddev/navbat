@@ -16,10 +16,17 @@ try {
     console.log(applied.length ? `Applied: ${applied.join(', ')}` : 'Database is up to date');
   } else if (command === 'seed') {
     await migrate(db);
-    const existing = await db.selectFrom('businesses').select('id').where('slug', '=', DEMO_SLUG).executeTakeFirst();
+    const existing = await db
+      .selectFrom('businesses')
+      .select('id')
+      .where('slug', '=', DEMO_SLUG)
+      .executeTakeFirst();
     if (existing) console.log('Demo business already exists, nothing to do');
     else {
-      const res = await seedDemo(db, { now: Date.now(), depositPercent: Number(process.env.DEMO_DEPOSIT_PERCENT ?? 0) });
+      const res = await seedDemo(db, {
+        now: Date.now(),
+        depositPercent: Number(process.env.DEMO_DEPOSIT_PERCENT ?? 0),
+      });
       console.log(`Seeded Demo Barbershop (${res.businessId})`);
     }
   } else {

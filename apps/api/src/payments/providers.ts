@@ -3,7 +3,13 @@
  * the repository ships placeholders. The sandbox is used by the demo and by default in dev.
  */
 import { createHash, randomUUID } from 'node:crypto';
-import { type PaymentIntent, type PaymentProvider, type PaymentSession, type ProviderId, SandboxProvider } from '@navbat/core';
+import {
+  type PaymentIntent,
+  type PaymentProvider,
+  type PaymentSession,
+  type ProviderId,
+  SandboxProvider,
+} from '@navbat/core';
 
 export interface PaymeConfig {
   merchantId: string;
@@ -73,7 +79,8 @@ export class ClickProvider implements PaymentProvider {
     url.searchParams.set('merchant_id', this.config.merchantId);
     url.searchParams.set('amount', intent.amount.toFixed(2));
     url.searchParams.set('transaction_param', ref);
-    if (intent.returnUrl ?? this.config.returnUrl) url.searchParams.set('return_url', (intent.returnUrl ?? this.config.returnUrl)!);
+    if (intent.returnUrl ?? this.config.returnUrl)
+      url.searchParams.set('return_url', (intent.returnUrl ?? this.config.returnUrl)!);
     return { provider: this.id, reference: ref, payUrl: url.toString() };
   }
 
@@ -91,7 +98,9 @@ export class ClickProvider implements PaymentProvider {
       fields.action,
       fields.sign_time,
     ];
-    return createHash('md5').update(parts.map((p) => p ?? '').join('')).digest('hex');
+    return createHash('md5')
+      .update(parts.map((p) => p ?? '').join(''))
+      .digest('hex');
   }
 
   verify(fields: Record<string, string>): boolean {
@@ -125,7 +134,8 @@ export class StarsProvider implements PaymentProvider {
       }),
     });
     const body = (await res.json()) as { ok: boolean; result?: string; description?: string };
-    if (!body.ok || !body.result) throw new Error(`createInvoiceLink failed: ${body.description ?? res.status}`);
+    if (!body.ok || !body.result)
+      throw new Error(`createInvoiceLink failed: ${body.description ?? res.status}`);
     return { provider: this.id, reference: ref, payUrl: body.result };
   }
 }
@@ -138,7 +148,10 @@ export interface PaymentRegistry {
   stars?: StarsProvider;
 }
 
-export function createPaymentRegistry(config: PaymentConfig = {}, fetchImpl: typeof fetch = fetch): PaymentRegistry {
+export function createPaymentRegistry(
+  config: PaymentConfig = {},
+  fetchImpl: typeof fetch = fetch,
+): PaymentRegistry {
   const sandbox = new SandboxProvider();
   const payme = config.payme ? new PaymeProvider(config.payme) : undefined;
   const click = config.click ? new ClickProvider(config.click) : undefined;

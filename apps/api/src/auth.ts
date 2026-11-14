@@ -1,10 +1,10 @@
 import {
   type Actor,
+  can,
   DomainError,
   type Permission,
-  type TelegramUser,
   TelegramAuthError,
-  can,
+  type TelegramUser,
   validateInitData,
   verifySession,
 } from '@navbat/core';
@@ -34,7 +34,8 @@ export async function telegramUser(req: FastifyRequest, cfg: AuthConfig): Promis
     try {
       return (await validateInitData(h.value, cfg.botToken, { now: cfg.now() })).user;
     } catch (e) {
-      if (e instanceof TelegramAuthError) throw new DomainError('UNAUTHORIZED', `Invalid Telegram data: ${e.reason}`);
+      if (e instanceof TelegramAuthError)
+        throw new DomainError('UNAUTHORIZED', `Invalid Telegram data: ${e.reason}`);
       throw e;
     }
   }

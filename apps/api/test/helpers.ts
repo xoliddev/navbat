@@ -1,10 +1,11 @@
-import { type TelegramUser, addDays, signInitData, todayIn, zonedToUtc } from '@navbat/core';
+import { addDays, signInitData, type TelegramUser, todayIn, zonedToUtc } from '@navbat/core';
 import { DEMO_TZ, migrate, seedDemo } from '@navbat/db';
 import { createPgDb } from '@navbat/db/node';
 import pg from 'pg';
 import { type AppDeps, buildApp } from '../src/app.js';
 
-export const BASE_URL = process.env.TEST_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:55432/postgres';
+export const BASE_URL =
+  process.env.TEST_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:55432/postgres';
 export const BOT_TOKEN = '123456:TEST-ONLY-not-a-real-token';
 export const SESSION_SECRET = 'test-session-secret-0123456789abcdef';
 export const PAYME_KEY = 'test-payme-key';
@@ -38,7 +39,9 @@ export async function createTestEnv(
   try {
     await admin.connect();
   } catch (e) {
-    throw new Error(`PostgreSQL is not reachable at TEST_DATABASE_URL (${BASE_URL}): ${(e as Error).message}`);
+    throw new Error(
+      `PostgreSQL is not reachable at TEST_DATABASE_URL (${BASE_URL}): ${(e as Error).message}`,
+    );
   }
   const name = `navbat_test_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   await admin.query(`CREATE DATABASE ${name}`);
@@ -47,7 +50,11 @@ export async function createTestEnv(
   url.pathname = `/${name}`;
   const { db } = createPgDb({ connectionString: url.toString(), max: 30 });
   await migrate(db);
-  const seed = await seedDemo(db, { now: NOW, history: opts.history ?? false, depositPercent: opts.depositPercent });
+  const seed = await seedDemo(db, {
+    now: NOW,
+    history: opts.history ?? false,
+    depositPercent: opts.depositPercent,
+  });
   let now = NOW;
   const app = await buildApp({
     db,

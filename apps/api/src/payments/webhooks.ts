@@ -13,10 +13,23 @@ export const PAYME_ERRORS = {
   method: { code: -32601, message: msg('Method not found', 'Метод не найден', 'Metod topilmadi') },
   parse: { code: -32700, message: msg('Parse error', 'Ошибка разбора', 'Soʻrov notoʻgʻri') },
   amount: { code: -31001, message: msg('Wrong amount', 'Неверная сумма', 'Summa notoʻgʻri') },
-  notFound: { code: -31003, message: msg('Transaction not found', 'Транзакция не найдена', 'Tranzaksiya topilmadi') },
-  cannot: { code: -31008, message: msg('Cannot perform operation', 'Невозможно выполнить операцию', 'Amalni bajarib boʻlmaydi') },
+  notFound: {
+    code: -31003,
+    message: msg('Transaction not found', 'Транзакция не найдена', 'Tranzaksiya topilmadi'),
+  },
+  cannot: {
+    code: -31008,
+    message: msg('Cannot perform operation', 'Невозможно выполнить операцию', 'Amalni bajarib boʻlmaydi'),
+  },
   account: { code: -31050, message: msg('Booking not found', 'Запись не найдена', 'Navbat topilmadi') },
-  busy: { code: -31099, message: msg('Another transaction is in progress', 'Идёт другая транзакция', 'Boshqa tranzaksiya bajarilmoqda') },
+  busy: {
+    code: -31099,
+    message: msg(
+      'Another transaction is in progress',
+      'Идёт другая транзакция',
+      'Boshqa tranzaksiya bajarilmoqda',
+    ),
+  },
 } as const;
 
 interface PaymeState {
@@ -44,7 +57,10 @@ export async function handlePayme(
   body: RpcRequest,
 ): Promise<RpcResult & { id: RpcRequest['id'] }> {
   const id = body?.id ?? null;
-  const fail = (e: { code: number; message: Msg }, data?: string) => ({ id, error: { ...e, ...(data ? { data } : {}) } });
+  const fail = (e: { code: number; message: Msg }, data?: string) => ({
+    id,
+    error: { ...e, ...(data ? { data } : {}) },
+  });
   if (!provider.isAuthorized(authHeader)) return fail(PAYME_ERRORS.auth);
   if (!body || typeof body.method !== 'string') return fail(PAYME_ERRORS.parse);
   const p = body.params ?? {};
@@ -105,11 +121,16 @@ export async function handlePayme(
       const payment = await byTx();
       if (!payment) return fail(PAYME_ERRORS.notFound);
       const s = payment.provider_data as PaymeState;
-      if (s.state === 2) return { id, result: { transaction: payment.id, perform_time: s.perform_time, state: 2 } };
+      if (s.state === 2)
+        return { id, result: { transaction: payment.id, perform_time: s.perform_time, state: 2 } };
       if (s.state !== 1) return fail(PAYME_ERRORS.cannot);
       await confirmPayment(ctx, { reference: payment.reference, providerTxId: String(p.id) });
       const next: PaymeState = { ...s, state: 2, perform_time: now };
-      await db.updateTable('payments').set({ provider_data: json(next) }).where('id', '=', payment.id).execute();
+      await db
+        .updateTable('payments')
+        .set({ provider_data: json(next) })
+        .where('id', '=', payment.id)
+        .execute();
       return { id, result: { transaction: payment.id, perform_time: now, state: 2 } };
     }
     case 'CancelTransaction': {
@@ -123,11 +144,19 @@ export async function handlePayme(
       const next: PaymeState = { ...s, state, cancel_time: now, reason: Number(p.reason ?? 0) || null };
       await db
         .updateTable('payments')
-        .set({ provider_data: json(next), status: state === -2 ? 'refunded' : 'failed', updated_at: new Date(now) })
+        .set({
+          provider_data: json(next),
+          status: state === -2 ? 'refunded' : 'failed',
+          updated_at: new Date(now),
+        })
         .where('id', '=', payment.id)
         .execute();
       if (state === -2) {
-        await db.updateTable('bookings').set({ payment_status: 'refunded' }).where('id', '=', payment.booking_id).execute();
+        await db
+          .updateTable('bookings')
+          .set({ payment_status: 'refunded' })
+          .where('id', '=', payment.booking_id)
+          .execute();
       }
       return { id, result: { transaction: payment.id, cancel_time: now, state } };
     }
@@ -192,7 +221,11 @@ export async function handleClick(
   }
   if (fields.merchant_prepare_id !== payment.id) return err(-6, 'Transaction does not exist');
   if (Number(fields.error) < 0) {
-    await ctx.db.updateTable('payments').set({ status: 'failed', updated_at: new Date(ctx.now()) }).where('id', '=', payment.id).execute();
+    await ctx.db
+      .updateTable('payments')
+      .set({ status: 'failed', updated_at: new Date(ctx.now()) })
+      .where('id', '=', payment.id)
+      .execute();
     return err(-9, 'Transaction cancelled');
   }
   await confirmPayment(ctx, { reference: payment.reference, providerTxId: fields.click_trans_id });

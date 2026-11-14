@@ -2,13 +2,12 @@ import cors from '@fastify/cors';
 import { DomainError, isDomainError, signSession, validateLoginWidget } from '@navbat/core';
 import {
   type AppContext,
-  type DB,
-  type StaffInput,
   cancelBooking,
   confirmPayment,
   createBooking,
   createTimeOff,
   customerFromTelegram,
+  type DB,
   deleteTimeOff,
   exportBookingsCsv,
   firstAvailableDate,
@@ -27,6 +26,7 @@ import {
   listNotifications,
   reportRunningLate,
   rescheduleBooking,
+  type StaffInput,
   saveSchedule,
   saveService,
   saveSettings,
@@ -39,9 +39,15 @@ import {
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { type Kysely, sql } from 'kysely';
 import { ZodError, type z } from 'zod';
-import { type AuthConfig, type StaffPrincipal, requirePermission, staffPrincipal, telegramUser } from './auth.js';
-import { type PaymentConfig, createPaymentRegistry } from './payments/providers.js';
-import { type RpcRequest, handleClick, handlePayme } from './payments/webhooks.js';
+import {
+  type AuthConfig,
+  requirePermission,
+  type StaffPrincipal,
+  staffPrincipal,
+  telegramUser,
+} from './auth.js';
+import { createPaymentRegistry, type PaymentConfig } from './payments/providers.js';
+import { handleClick, handlePayme, type RpcRequest } from './payments/webhooks.js';
 import * as S from './schemas.js';
 
 export interface AppDeps {
@@ -67,7 +73,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const now = deps.now ?? (() => Date.now());
   const registry = createPaymentRegistry(deps.payments, deps.fetch);
   const ctx: AppContext = { db: deps.db, now, appUrl: deps.appUrl, payments: (id) => registry.get(id) };
-  const auth: AuthConfig = { botToken: deps.botToken, sessionSecret: deps.sessionSecret, devAuth: !!deps.devAuth, now };
+  const auth: AuthConfig = {
+    botToken: deps.botToken,
+    sessionSecret: deps.sessionSecret,
+    devAuth: !!deps.devAuth,
+    now,
+  };
   const { db } = deps;
 
   const app = Fastify({ logger: deps.logger ?? false, bodyLimit: 256 * 1024 });
@@ -81,12 +92,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.setErrorHandler((error, req, reply) => {
     if (error instanceof ZodError) {
       return reply.status(400).send({
-        error: { code: 'VALIDATION', message: 'Invalid request', details: { issues: error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })) } },
+        error: {
+          code: 'VALIDATION',
+          message: 'Invalid request',
+          details: { issues: error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })) },
+        },
       });
     }
     if (isDomainError(error)) {
       const e = error as DomainError;
-      return reply.status(e.status).send({ error: { code: e.code, message: e.message, ...(e.details ? { details: e.details } : {}) } });
+      return reply
+        .status(e.status)
+        .send({ error: { code: e.code, message: e.message, ...(e.details ? { details: e.details } : {}) } });
     }
     const status = (error as { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 500) {
@@ -96,7 +113,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return reply.status(500).send({ error: { code: 'INTERNAL', message: 'Something went wrong' } });
   });
 
-  app.setNotFoundHandler((_req, reply) => reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Route not found' } }));
+  app.setNotFoundHandler((_req, reply) =>
+    reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Route not found' } }),
+  );
 
   app.get('/health', async () => {
     await sql`select 1`.execute(db);
@@ -111,7 +130,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   for (const stage of ['prepare', 'complete'] as const) {
     app.post(`/api/payments/click/${stage}`, async (req) => {
       if (!registry.click) throw new DomainError('NOT_FOUND', 'Click is not configured');
-      const fields = Object.fromEntries(Object.entries((req.body ?? {}) as Record<string, unknown>).map(([k, v]) => [k, String(v)]));
+      const fields = Object.fromEntries(
+        Object.entries((req.body ?? {}) as Record<string, unknown>).map(([k, v]) => [k, String(v)]),
+      );
       return handleClick(ctx, registry.click, stage, fields);
     });
   }
@@ -124,9 +145,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         const b = await business(req);
         const user = await telegramUser(req, auth);
         const c = await customerFromTelegram(db, b.id, user);
-        return { business: b, user, customer: c, actor: { kind: 'customer' as const, customerId: c.customerId } };
+        return {
+          business: b,
+          user,
+          customer: c,
+          actor: { kind: 'customer' as const, customerId: c.customerId },
+        };
       };
-      const staff = async (req: FastifyRequest): Promise<{ business: Awaited<ReturnType<typeof business>>; me: StaffPrincipal }> => {
+      const staff = async (
+        req: FastifyRequest,
+      ): Promise<{ business: Awaited<ReturnType<typeof business>>; me: StaffPrincipal }> => {
         const b = await business(req);
         return { business: b, me: await staffPrincipal(req, db, b.id, auth) };
       };
@@ -146,17 +174,36 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       r.get('/slots', async (req) => {
         const b = await business(req);
         const q = parse(S.slotsQuery, req.query);
-        return getSlots(db, { businessId: b.id, date: q.date, serviceIds: q.services, staffId: q.staff, now: now() });
+        return getSlots(db, {
+          businessId: b.id,
+          date: q.date,
+          serviceIds: q.services,
+          staffId: q.staff,
+          now: now(),
+        });
       });
       r.get('/availability', async (req) => {
         const b = await business(req);
         const q = parse(S.monthQuery, req.query);
-        return getMonthAvailability(db, { businessId: b.id, month: q.month, serviceIds: q.services, staffId: q.staff, now: now() });
+        return getMonthAvailability(db, {
+          businessId: b.id,
+          month: q.month,
+          serviceIds: q.services,
+          staffId: q.staff,
+          now: now(),
+        });
       });
       r.get('/first-available', async (req) => {
         const b = await business(req);
         const q = parse(S.firstQuery, req.query);
-        return { date: await firstAvailableDate(db, { businessId: b.id, serviceIds: q.services, staffId: q.staff, now: now() }) };
+        return {
+          date: await firstAvailableDate(db, {
+            businessId: b.id,
+            serviceIds: q.services,
+            staffId: q.staff,
+            now: now(),
+          }),
+        };
       });
 
       // customer (Telegram Mini App)
@@ -213,7 +260,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       r.post('/bookings/:id/cancel', async (req) => {
         const c = await customer(req);
         const body = parse(S.cancelBody, req.body ?? {});
-        return cancelBooking(ctx, { businessId: c.business.id, bookingId: parse(S.slugId, req.params).id, actor: c.actor, reason: body.reason });
+        return cancelBooking(ctx, {
+          businessId: c.business.id,
+          bookingId: parse(S.slugId, req.params).id,
+          actor: c.actor,
+          reason: body.reason,
+        });
       });
       r.post('/bookings/:id/late', async (req) => {
         const c = await customer(req);
@@ -238,7 +290,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       });
       r.post('/payments/sandbox/:reference/complete', async (req) => {
         const b = await business(req);
-        if (b.settings.paymentProvider !== 'sandbox') throw new DomainError('NOT_FOUND', 'Sandbox payments are off');
+        if (b.settings.paymentProvider !== 'sandbox')
+          throw new DomainError('NOT_FOUND', 'Sandbox payments are off');
         const { reference } = req.params as { reference: string };
         const payment = await db
           .selectFrom('payments as p')
@@ -247,7 +300,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
           .where('p.reference', '=', reference)
           .where('b.business_id', '=', b.id)
           .executeTakeFirst();
-        if (!payment || payment.provider !== 'sandbox') throw new DomainError('NOT_FOUND', 'Payment not found');
+        if (!payment || payment.provider !== 'sandbox')
+          throw new DomainError('NOT_FOUND', 'Payment not found');
         registry.sandbox.complete(reference);
         return confirmPayment(ctx, { reference });
       });
@@ -322,24 +376,39 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       r.post('/admin/bookings/:id/cancel', async (req) => {
         const { business: b, me } = await staff(req);
         const body = parse(S.cancelBody, req.body ?? {});
-        return cancelBooking(ctx, { businessId: b.id, bookingId: parse(S.slugId, req.params).id, actor: me.actor, reason: body.reason });
+        return cancelBooking(ctx, {
+          businessId: b.id,
+          bookingId: parse(S.slugId, req.params).id,
+          actor: me.actor,
+          reason: body.reason,
+        });
       });
       r.post('/admin/bookings/:id/status', async (req) => {
         const { business: b, me } = await staff(req);
         const body = parse(S.statusBody, req.body);
-        return setBookingStatus(ctx, { businessId: b.id, bookingId: parse(S.slugId, req.params).id, event: body.event, actor: me.actor });
+        return setBookingStatus(ctx, {
+          businessId: b.id,
+          bookingId: parse(S.slugId, req.params).id,
+          event: body.event,
+          actor: me.actor,
+        });
       });
       r.post('/admin/time-off', async (req) => {
         const { business: b, me } = await staff(req);
         const body = parse(S.timeOffBody, req.body);
-        if (me.role === 'master' && body.staffId !== me.staffId) throw new DomainError('FORBIDDEN', 'Masters can only block their own time');
+        if (me.role === 'master' && body.staffId !== me.staffId)
+          throw new DomainError('FORBIDDEN', 'Masters can only block their own time');
         return createTimeOff(db, { businessId: b.id, ...body });
       });
       r.delete('/admin/time-off/:id', async (req, reply: FastifyReply) => {
         const { business: b, me } = await staff(req);
         const id = parse(S.slugId, req.params).id;
         if (me.role === 'master') {
-          const row = await db.selectFrom('time_off').select('staff_id').where('id', '=', id).executeTakeFirst();
+          const row = await db
+            .selectFrom('time_off')
+            .select('staff_id')
+            .where('id', '=', id)
+            .executeTakeFirst();
           if (row && row.staff_id !== me.staffId) throw new DomainError('FORBIDDEN', 'Not your block');
         }
         await deleteTimeOff(db, b.id, id);
@@ -358,7 +427,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       r.get('/admin/staff/:id/schedule', async (req) => {
         const { me } = await staff(req);
         const id = parse(S.slugId, req.params).id;
-        if (me.role === 'master' && id !== me.staffId) throw new DomainError('FORBIDDEN', 'Not your schedule');
+        if (me.role === 'master' && id !== me.staffId)
+          throw new DomainError('FORBIDDEN', 'Not your schedule');
         return getSchedule(db, id);
       });
       r.put('/admin/staff/:id/schedule', async (req) => {
@@ -376,7 +446,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       r.get('/admin/clients', async (req) => {
         const { business: b, me } = await staff(req);
         requirePermission(me, 'clients.view');
-        return listClients(db, { businessId: b.id, search: parse(S.clientsQuery, req.query).search, now: now() });
+        return listClients(db, {
+          businessId: b.id,
+          search: parse(S.clientsQuery, req.query).search,
+          now: now(),
+        });
       });
       r.get('/admin/clients/:id', async (req) => {
         const { business: b, me } = await staff(req);

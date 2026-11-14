@@ -5,7 +5,7 @@
  */
 import { sql } from 'kysely';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { type TestEnv, at, createTestEnv } from './helpers.js';
+import { at, createTestEnv, type TestEnv } from './helpers.js';
 
 let env: TestEnv;
 beforeAll(async () => {
@@ -18,7 +18,9 @@ afterAll(async () => {
 const B = '/api/b/demo';
 
 async function burst(n: number, staffId: string | null, start: number, firstTg: number) {
-  const headers = await Promise.all(Array.from({ length: n }, (_, i) => env.tma({ id: firstTg + i, first_name: `Racer ${i}` })));
+  const headers = await Promise.all(
+    Array.from({ length: n }, (_, i) => env.tma({ id: firstTg + i, first_name: `Racer ${i}` })),
+  );
   return Promise.all(
     headers.map((authorization, i) =>
       env.app.inject({
@@ -45,7 +47,8 @@ describe('concurrency', () => {
     const codes = results.map((r) => r.statusCode).sort();
     expect(codes.filter((c) => c === 201)).toHaveLength(1);
     expect(codes.filter((c) => c === 409)).toHaveLength(19);
-    for (const r of results.filter((x) => x.statusCode === 409)) expect(r.json().error.code).toBe('SLOT_UNAVAILABLE');
+    for (const r of results.filter((x) => x.statusCode === 409))
+      expect(r.json().error.code).toBe('SLOT_UNAVAILABLE');
     const rows = await sql<{ n: number }>`
       select count(*)::int as n from bookings
       where staff_id = ${jasur} and status <> 'cancelled' and start_at = ${new Date(start)}`.execute(env.db);
@@ -54,8 +57,12 @@ describe('concurrency', () => {
 
   it('"any master" burst fills every free master once and never overlaps', async () => {
     const start = at(1, '12:00'); // all four masters work and are free on Friday 12:00
-    const free = await env.app.inject({ method: 'GET', url: `${B}/slots?date=2026-11-13&services=${env.seed.serviceIds.classic}&staff=any` });
-    const options = (free.json() as { start: number; options: unknown[] }[]).find((s) => s.start === start)!.options.length;
+    const free = await env.app.inject({
+      method: 'GET',
+      url: `${B}/slots?date=2026-11-13&services=${env.seed.serviceIds.classic}&staff=any`,
+    });
+    const options = (free.json() as { start: number; options: unknown[] }[]).find((s) => s.start === start)!
+      .options.length;
     expect(options).toBe(4);
 
     const results = await burst(12, null, start, 60_000);

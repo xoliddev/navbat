@@ -10,7 +10,11 @@ const applied = await migrate(db);
 if (applied.length) console.log(`Applied migrations: ${applied.join(', ')}`);
 
 if (env.seedDemo) {
-  const existing = await db.selectFrom('businesses').select('id').where('slug', '=', DEMO_SLUG).executeTakeFirst();
+  const existing = await db
+    .selectFrom('businesses')
+    .select('id')
+    .where('slug', '=', DEMO_SLUG)
+    .executeTakeFirst();
   if (!existing) {
     await seedDemo(db, { now: Date.now(), depositPercent: 0 });
     console.log('Seeded "Demo Barbershop" (slug: demo)');

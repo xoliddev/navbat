@@ -1,6 +1,6 @@
 import { signLoginWidget } from '@navbat/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ADMIN_TG, BOT_TOKEN, MASTER_TG, NOW, OWNER_TG, type TestEnv, at, createTestEnv } from './helpers.js';
+import { ADMIN_TG, at, BOT_TOKEN, createTestEnv, MASTER_TG, NOW, OWNER_TG, type TestEnv } from './helpers.js';
 
 let env: TestEnv;
 beforeAll(async () => {
@@ -14,27 +14,56 @@ const B = '/api/b/demo';
 const get = async (url: string, tg: number) =>
   env.app.inject({ method: 'GET', url: `${B}${url}`, headers: { authorization: await env.tma({ id: tg }) } });
 const send = async (method: 'POST' | 'PUT' | 'DELETE', url: string, tg: number, payload?: unknown) =>
-  env.app.inject({ method, url: `${B}${url}`, headers: { authorization: await env.tma({ id: tg }) }, payload: payload as object });
+  env.app.inject({
+    method,
+    url: `${B}${url}`,
+    headers: { authorization: await env.tma({ id: tg }) },
+    payload: payload as object,
+  });
 
 describe('staff auth', () => {
   it('signs in with the Telegram Login Widget and uses the session token', async () => {
-    const widget = await signLoginWidget({ id: OWNER_TG, first_name: 'Rustam', auth_date: Math.floor(NOW / 1000) }, BOT_TOKEN);
+    const widget = await signLoginWidget(
+      { id: OWNER_TG, first_name: 'Rustam', auth_date: Math.floor(NOW / 1000) },
+      BOT_TOKEN,
+    );
     const login = await env.app.inject({ method: 'POST', url: `${B}/auth/telegram-login`, payload: widget });
     expect(login.statusCode).toBe(200);
     const { token, staff } = login.json();
     expect(staff.role).toBe('owner');
-    const me = await env.app.inject({ method: 'GET', url: `${B}/admin/me`, headers: { authorization: `Bearer ${token}` } });
+    const me = await env.app.inject({
+      method: 'GET',
+      url: `${B}/admin/me`,
+      headers: { authorization: `Bearer ${token}` },
+    });
     expect(me.json()).toMatchObject({ role: 'owner', name: 'Rustam Karimov' });
-    const forged = await env.app.inject({ method: 'GET', url: `${B}/admin/me`, headers: { authorization: `Bearer ${token}x` } });
+    const forged = await env.app.inject({
+      method: 'GET',
+      url: `${B}/admin/me`,
+      headers: { authorization: `Bearer ${token}x` },
+    });
     expect(forged.statusCode).toBe(401);
   });
 
   it('rejects a tampered widget payload and non-members', async () => {
-    const widget = await signLoginWidget({ id: OWNER_TG, first_name: 'Rustam', auth_date: Math.floor(NOW / 1000) }, BOT_TOKEN);
-    const tampered = await env.app.inject({ method: 'POST', url: `${B}/auth/telegram-login`, payload: { ...widget, id: ADMIN_TG } });
+    const widget = await signLoginWidget(
+      { id: OWNER_TG, first_name: 'Rustam', auth_date: Math.floor(NOW / 1000) },
+      BOT_TOKEN,
+    );
+    const tampered = await env.app.inject({
+      method: 'POST',
+      url: `${B}/auth/telegram-login`,
+      payload: { ...widget, id: ADMIN_TG },
+    });
     expect(tampered.statusCode).toBe(401);
-    const stranger = await signLoginWidget({ id: 999_999, first_name: 'X', auth_date: Math.floor(NOW / 1000) }, BOT_TOKEN);
-    expect((await env.app.inject({ method: 'POST', url: `${B}/auth/telegram-login`, payload: stranger })).statusCode).toBe(403);
+    const stranger = await signLoginWidget(
+      { id: 999_999, first_name: 'X', auth_date: Math.floor(NOW / 1000) },
+      BOT_TOKEN,
+    );
+    expect(
+      (await env.app.inject({ method: 'POST', url: `${B}/auth/telegram-login`, payload: stranger }))
+        .statusCode,
+    ).toBe(403);
     expect((await get('/admin/me', 1001)).statusCode).toBe(403); // a customer is not staff
   });
 
@@ -44,7 +73,9 @@ describe('staff auth', () => {
     expect((await get('/admin/analytics?from=2026-11-01&to=2026-11-12', MASTER_TG[0])).statusCode).toBe(403);
     expect((await get('/admin/clients', MASTER_TG[0])).statusCode).toBe(403);
     expect((await send('PUT', '/admin/staff', ADMIN_TG, { name: 'X' })).statusCode).toBe(403); // owner only
-    expect((await send('PUT', '/admin/settings', ADMIN_TG, { settings: { slotStepMin: 30 } })).statusCode).toBe(403);
+    expect(
+      (await send('PUT', '/admin/settings', ADMIN_TG, { settings: { slotStepMin: 30 } })).statusCode,
+    ).toBe(403);
     expect((await get('/admin/notifications', MASTER_TG[0])).statusCode).toBe(403);
   });
 });
@@ -57,13 +88,16 @@ describe('calendar and master isolation', () => {
     expect(all.working.length).toBe(4 * 7);
     const mine = (await get(`/admin/calendar?from=2026-11-12&to=2026-11-18`, MASTER_TG[0])).json();
     expect(mine.staff.map((s: { id: string }) => s.id)).toEqual([env.seed.staffIds.masters[0]]);
-    expect(mine.bookings.every((b: { staffId: string }) => b.staffId === env.seed.staffIds.masters[0])).toBe(true);
+    expect(mine.bookings.every((b: { staffId: string }) => b.staffId === env.seed.staffIds.masters[0])).toBe(
+      true,
+    );
   });
 
-  it('masters cannot read or move other masters\' bookings', async () => {
+  it("masters cannot read or move other masters' bookings", async () => {
     const all = (await get(`/admin/calendar?from=2026-11-13&to=2026-11-20`, OWNER_TG)).json();
     const foreign = all.bookings.find(
-      (b: { staffId: string; status: string }) => b.staffId === env.seed.staffIds.masters[1] && b.status === 'confirmed',
+      (b: { staffId: string; status: string }) =>
+        b.staffId === env.seed.staffIds.masters[1] && b.status === 'confirmed',
     );
     expect((await get(`/admin/bookings/${foreign.id}`, MASTER_TG[0])).statusCode).toBe(403);
     const move = await send('POST', `/admin/bookings/${foreign.id}/cancel`, MASTER_TG[0], {});
@@ -78,7 +112,9 @@ describe('calendar and master isolation', () => {
   });
 
   it('creates a walk-in, drags it to another master and marks a no-show', async () => {
-    const slots = (await get(`/slots?date=2026-11-17&services=${env.seed.serviceIds.classic}&staff=any`, ADMIN_TG)).json() as {
+    const slots = (
+      await get(`/slots?date=2026-11-17&services=${env.seed.serviceIds.classic}&staff=any`, ADMIN_TG)
+    ).json() as {
       start: number;
       options: { staffId: string }[];
     }[];
@@ -93,7 +129,10 @@ describe('calendar and master isolation', () => {
     expect(created.statusCode).toBe(201);
     const id = created.json().booking.id;
     expect(created.json().booking.source).toBe('phone');
-    const moved = await send('POST', `/admin/bookings/${id}/reschedule`, ADMIN_TG, { start: slot.start, staffId: slot.options[1]!.staffId });
+    const moved = await send('POST', `/admin/bookings/${id}/reschedule`, ADMIN_TG, {
+      start: slot.start,
+      staffId: slot.options[1]!.staffId,
+    });
     expect(moved.statusCode).toBe(200);
     expect(moved.json().staffId).toBe(slot.options[1]!.staffId);
     env.setNow(slot.start + 30 * 60_000);
@@ -108,11 +147,24 @@ describe('calendar and master isolation', () => {
 
   it('blocks time (and lets a master block only their own)', async () => {
     const jasur = env.seed.staffIds.masters[0];
-    const block = await send('POST', '/admin/time-off', MASTER_TG[0], { staffId: jasur, start: at(20, '10:00'), end: at(20, '12:00'), reason: 'Doctor' });
+    const block = await send('POST', '/admin/time-off', MASTER_TG[0], {
+      staffId: jasur,
+      start: at(20, '10:00'),
+      end: at(20, '12:00'),
+      reason: 'Doctor',
+    });
     expect(block.statusCode).toBe(200);
-    const foreign = await send('POST', '/admin/time-off', MASTER_TG[0], { staffId: env.seed.staffIds.masters[1], start: at(20, '10:00'), end: at(20, '12:00') });
+    const foreign = await send('POST', '/admin/time-off', MASTER_TG[0], {
+      staffId: env.seed.staffIds.masters[1],
+      start: at(20, '10:00'),
+      end: at(20, '12:00'),
+    });
     expect(foreign.statusCode).toBe(403);
-    const bad = await send('POST', '/admin/time-off', ADMIN_TG, { staffId: jasur, start: at(20, '12:00'), end: at(20, '10:00') });
+    const bad = await send('POST', '/admin/time-off', ADMIN_TG, {
+      staffId: jasur,
+      start: at(20, '12:00'),
+      end: at(20, '10:00'),
+    });
     expect(bad.statusCode).toBe(400);
     const del = await send('DELETE', `/admin/time-off/${block.json().id}`, ADMIN_TG);
     expect(del.statusCode).toBe(204);
@@ -143,7 +195,9 @@ describe('catalog management', () => {
     });
     expect(sched.json()).toHaveLength(2);
     expect((await get(`/admin/staff/${master.json().id}/schedule`, OWNER_TG)).json()).toHaveLength(2);
-    const slots = (await get(`/slots?date=2026-11-13&services=${svc.json().id}&staff=${master.json().id}`, OWNER_TG)).json();
+    const slots = (
+      await get(`/slots?date=2026-11-13&services=${svc.json().id}&staff=${master.json().id}`, OWNER_TG)
+    ).json();
     expect(slots).toHaveLength(4);
     const invalid = await send('PUT', `/admin/staff/${master.json().id}/schedule`, ADMIN_TG, {
       rules: [{ kind: 'work', weekday: 9, startMin: 600, endMin: 720 }],
@@ -177,7 +231,9 @@ describe('reports', () => {
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toContain('text/csv');
     expect(res.headers['content-disposition']).toContain('navbat-demo-2026-11-01_2026-11-12.csv');
-    expect(res.body.split('\r\n')[0]).toBe('﻿Code,Date,Start,End,Master,Services,Client,Phone,Status,Price,Source');
+    expect(res.body.split('\r\n')[0]).toBe(
+      '﻿Code,Date,Start,End,Master,Services,Client,Phone,Status,Price,Source',
+    );
   });
 
   it('rejects absurd ranges', async () => {

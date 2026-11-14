@@ -1,7 +1,9 @@
 import { LANGS } from '@navbat/core';
 import { z } from 'zod';
 
-export const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Expected an id');
+export const uuid = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Expected an id');
 export const localDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD');
 export const instant = z.number().int().positive();
 export const lang = z.enum(LANGS);
@@ -50,7 +52,10 @@ export const createBookingBody = z.object({
 export const rescheduleBody = z.object({ start: instant, staffId: uuid.optional() });
 export const cancelBody = z.object({ reason: z.string().max(300).nullish() }).default({});
 export const lateBody = z.object({ minutes: z.number().int() });
-export const reviewBody = z.object({ rating: z.number().int().min(1).max(5), comment: z.string().max(1000).nullish() });
+export const reviewBody = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(1000).nullish(),
+});
 
 export const loginBody = z
   .object({

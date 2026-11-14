@@ -22,10 +22,15 @@ function required(name: string, value: string | undefined): string {
 export function readEnv(env: NodeJS.ProcessEnv = process.env): Env {
   const production = env.NODE_ENV === 'production';
   const sessionSecret = required('SESSION_SECRET', env.SESSION_SECRET);
-  if (production && sessionSecret.length < 32) throw new Error('SESSION_SECRET must be at least 32 characters');
+  if (production && sessionSecret.length < 32)
+    throw new Error('SESSION_SECRET must be at least 32 characters');
   const payments: PaymentConfig = {};
   if (env.PAYME_MERCHANT_ID && env.PAYME_KEY) {
-    payments.payme = { merchantId: env.PAYME_MERCHANT_ID, key: env.PAYME_KEY, checkoutUrl: env.PAYME_CHECKOUT_URL };
+    payments.payme = {
+      merchantId: env.PAYME_MERCHANT_ID,
+      key: env.PAYME_KEY,
+      checkoutUrl: env.PAYME_CHECKOUT_URL,
+    };
   }
   if (env.CLICK_SERVICE_ID && env.CLICK_MERCHANT_ID && env.CLICK_SECRET_KEY) {
     payments.click = {
