@@ -1,0 +1,33 @@
+{
+  "name": "@navbat/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "React Mini App + admin panel. Demo mode runs the real domain logic on PGlite in the browser.",
+  "scripts": {
+    "dev": "vite",
+    "dev:demo": "vite --mode demo",
+    "build": "tsc -p tsconfig.json && vite build",
+    "build:demo": "vite build --mode demo",
+    "preview:demo": "vite preview --mode demo --port 4173 --strictPort",
+    "typecheck": "tsc -p tsconfig.json",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.16",
+    "@fontsource-variable/onest": "^5.2.0",
+    "@fontsource-variable/unbounded": "^5.2.0",
+    "@navbat/core": "*",
+    "@navbat/db": "*",
+    "motion": "^12.23.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "vite": "^8.0.0"
+  }
+}

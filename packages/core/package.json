@@ -1,0 +1,13 @@
+{
+  "name": "@navbat/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-free domain logic: slot engine, booking rules, state machine, i18n, message templates.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

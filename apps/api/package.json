@@ -1,0 +1,26 @@
+{
+  "name": "@navbat/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fastify HTTP API: Mini App, admin panel and payment webhooks.",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "build": "esbuild src/main.ts src/cli.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --packages=external --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
+    "migrate": "tsx src/cli.ts migrate",
+    "seed": "tsx src/cli.ts seed",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@navbat/core": "*",
+    "@navbat/db": "*",
+    "fastify": "^5.6.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "tsx": "^4.20.0"
+  }
+}
