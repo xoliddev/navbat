@@ -3,6 +3,7 @@ import '@fontsource-variable/onest';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/app.css';
+import './styles/demo.css';
 import { createRoot } from 'react-dom/client';
 import { Root } from './Root';
 import { loadTelegramScript, tg } from './telegram';

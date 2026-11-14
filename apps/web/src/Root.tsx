@@ -91,7 +91,7 @@ export function Root({ demo, launchHash }: { demo: boolean; launchHash: string }
       </div>
     );
   } else if (!backend) {
-    body = <DemoBoot />;
+    body = <DemoBoot demo={demo} />;
   } else if (demo) {
     body = <DemoShell backend={backend as DemoBackend} hash={hash} launchHash={launchHash} />;
   } else if (hash.startsWith('#/admin')) {
@@ -106,7 +106,7 @@ export function Root({ demo, launchHash }: { demo: boolean; launchHash: string }
         <BackendContext.Provider value={backend}>
           <DataVersionContext.Provider value={version}>
             <ToastProvider>
-              <Suspense fallback={<DemoBoot />}>{body}</Suspense>
+              <Suspense fallback={<DemoBoot demo={demo} />}>{body}</Suspense>
             </ToastProvider>
           </DataVersionContext.Provider>
         </BackendContext.Provider>
@@ -115,13 +115,41 @@ export function Root({ demo, launchHash }: { demo: boolean; launchHash: string }
   );
 }
 
-function DemoBoot() {
+const BOOT_TEXT: Record<Lang, { badge: string; boot: string }> = {
+  uz: {
+    badge: 'Demo rejim — hammasi brauzeringizda ishlaydi',
+    boot: 'PostgreSQL brauzeringizda ishga tushmoqda…',
+  },
+  ru: {
+    badge: 'Демо-режим — всё работает в вашем браузере',
+    boot: 'PostgreSQL запускается в вашем браузере…',
+  },
+  en: { badge: 'Demo mode — runs entirely in your browser', boot: 'PostgreSQL is starting in your browser…' },
+};
+
+/** Shown while PGlite downloads and seeds (first visit only takes a few seconds). */
+function DemoBoot({ demo }: { demo?: boolean }) {
+  const text = BOOT_TEXT[initialLang()];
   return (
-    <div className="boot" data-testid="booting">
-      <div className="boot-ticket" aria-hidden>
-        N
+    <>
+      {demo && (
+        <header className="demo-bar">
+          <span className="demo-logo">
+            <span className="mini-logo">N</span>
+            <span>Navbat</span>
+          </span>
+          <span className="demo-badge" data-testid="demo-badge">
+            <span className="dot" aria-hidden />
+            {text.badge}
+          </span>
+        </header>
+      )}
+      <div className="boot" data-testid="booting">
+        <div className="boot-ticket" aria-hidden>
+          N
+        </div>
+        <p className="muted">{text.boot}</p>
       </div>
-      <p className="muted">PostgreSQL is starting in your browser…</p>
-    </div>
+    </>
   );
 }

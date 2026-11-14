@@ -5,7 +5,6 @@ import type { DemoBackend, DemoRole } from '../backend/demo';
 import { useI18n } from '../i18n';
 import { useAsync } from '../lib';
 import { BotChat } from './BotChat';
-import '../styles/demo.css';
 
 const AdminApp = lazy(() => import('../admin/AdminApp').then((m) => ({ default: m.AdminApp })));
 
