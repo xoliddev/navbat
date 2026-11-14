@@ -6,8 +6,8 @@ import type {
   BusinessSettings,
   CalendarDTO,
   CatalogDTO,
-  ClientDTO,
   ClientDetailsDTO,
+  ClientDTO,
   CreatedBookingDTO,
   DayHeatDTO,
   NotificationDTO,
@@ -121,7 +121,12 @@ export interface Backend {
   adminReschedule(id: string, start: number, staffId?: string): Promise<BookingDTO>;
   adminCancel(id: string, reason?: string): Promise<BookingDTO>;
   adminStatus(id: string, event: 'complete' | 'no_show' | 'confirm'): Promise<BookingDTO>;
-  createTimeOff(body: { staffId: string | null; start: number; end: number; reason?: string | null }): Promise<TimeOffDTO>;
+  createTimeOff(body: {
+    staffId: string | null;
+    start: number;
+    end: number;
+    reason?: string | null;
+  }): Promise<TimeOffDTO>;
   deleteTimeOff(id: string): Promise<void>;
   saveService(body: ServiceInput): Promise<ServiceDTO>;
   saveStaff(body: StaffInput): Promise<StaffDTO>;

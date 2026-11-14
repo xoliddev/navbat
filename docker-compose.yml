@@ -1,0 +1,71 @@
+# Local stack: PostgreSQL 16 + API + bot + web (Mini App and admin behind nginx).
+#   cp .env.example .env && docker compose up --build
+#   open http://localhost:8080 (Mini App) and http://localhost:8080/#/admin (admin panel)
+name: navbat
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-navbat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-navbat}
+      POSTGRES_DB: ${POSTGRES_DB:-navbat}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-navbat} -d ${POSTGRES_DB:-navbat}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  api:
+    build: { context: ., target: api }
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-navbat}:${POSTGRES_PASSWORD:-navbat}@postgres:5432/${POSTGRES_DB:-navbat}
+      BOT_TOKEN: ${BOT_TOKEN}
+      SESSION_SECRET: ${SESSION_SECRET}
+      WEBAPP_URL: ${WEBAPP_URL:-http://localhost:8080}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      AUTH_DEV_MODE: ${AUTH_DEV_MODE:-false}
+      NODE_ENV: ${NODE_ENV:-production}
+      PAYME_MERCHANT_ID: ${PAYME_MERCHANT_ID:-}
+      PAYME_KEY: ${PAYME_KEY:-}
+      CLICK_SERVICE_ID: ${CLICK_SERVICE_ID:-}
+      CLICK_MERCHANT_ID: ${CLICK_MERCHANT_ID:-}
+      CLICK_SECRET_KEY: ${CLICK_SECRET_KEY:-}
+      STARS_ENABLED: ${STARS_ENABLED:-false}
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+  bot:
+    build: { context: ., target: bot }
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-navbat}:${POSTGRES_PASSWORD:-navbat}@postgres:5432/${POSTGRES_DB:-navbat}
+      BOT_TOKEN: ${BOT_TOKEN}
+      WEBAPP_URL: ${WEBAPP_URL:-http://localhost:8080}
+      BUSINESS_SLUG: ${BUSINESS_SLUG:-demo}
+      BOT_DRY_RUN: ${BOT_DRY_RUN:-true}
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      target: web
+      args:
+        VITE_BUSINESS_SLUG: ${BUSINESS_SLUG:-demo}
+        VITE_BOT_USERNAME: ${BOT_USERNAME:-}
+    depends_on:
+      api: { condition: service_healthy }
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

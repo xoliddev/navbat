@@ -34,9 +34,21 @@ export function MockBackButton({ label }: { label: string }) {
   const { back } = useMockChrome();
   if (tg.inTelegram || !back) return <span className="tg-back-spacer" />;
   return (
-    <button type="button" className="icon-btn" aria-label={label} data-testid="back-button" onClick={() => back()}>
+    <button
+      type="button"
+      className="icon-btn"
+      aria-label={label}
+      data-testid="back-button"
+      onClick={() => back()}
+    >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M15 5l-7 7 7 7"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </button>
   );

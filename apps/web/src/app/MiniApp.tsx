@@ -1,17 +1,24 @@
 import { LANGS, type Lang } from '@navbat/core';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CatalogDTO } from '../backend/types';
-import { LANG_LABEL, errorText, useI18n } from '../i18n';
+import { errorText, LANG_LABEL, useI18n } from '../i18n';
 import { useAsync, useBackend } from '../lib';
 import { BookingFlow, type FlowStart } from './BookingFlow';
 import { BookingDetail, BookingList } from './MyBookings';
 import { MockBackButton, MockMainButton } from './TelegramChrome';
 
-type Screen = { name: 'book'; start: FlowStart; key: number } | { name: 'list' } | { name: 'detail'; id: string };
+type Screen =
+  | { name: 'book'; start: FlowStart; key: number }
+  | { name: 'list' }
+  | { name: 'detail'; id: string };
 
 /** Parses `startapp` payloads (`master_<id>`, `service_<id>`, `booking_<id>`) and `#/booking/<id>`. */
 export function initialScreens(catalog: CatalogDTO, startParam: string | null, hash: string): Screen[] {
-  const book: Screen = { name: 'book', start: { serviceIds: [], staffId: undefined, lockedStaff: false }, key: 0 };
+  const book: Screen = {
+    name: 'book',
+    start: { serviceIds: [], staffId: undefined, lockedStaff: false },
+    key: 0,
+  };
   const fromHash = /#\/booking\/([0-9a-f-]{36})/.exec(hash)?.[1];
   if (fromHash) return [book, { name: 'list' }, { name: 'detail', id: fromHash }];
   const m = /^(master|service|booking)_([0-9a-f-]{36})$/.exec(startParam ?? '');
@@ -31,6 +38,11 @@ export function MiniApp({ startParam, hash }: { startParam: string | null; hash:
   const catalog = useAsync(() => backend.catalog(), []);
   const me = useAsync(() => backend.me(), []);
   const [stack, setStack] = useState<Screen[] | null>(null);
+  // Keep the bot's language in sync with the language the customer reads the app in.
+  const meLang = me.data?.customer.lang;
+  useEffect(() => {
+    if (meLang && meLang !== lang) void backend.patchMe({ lang }).catch(() => undefined);
+  }, [meLang, lang, backend]);
   const screens = useMemo(
     () => stack ?? (catalog.data ? initialScreens(catalog.data, startParam, hash) : null),
     [stack, catalog.data, startParam, hash],
@@ -61,7 +73,10 @@ export function MiniApp({ startParam, hash }: { startParam: string | null; hash:
   const top = screens[screens.length - 1]!;
   const push = (s: Screen) => setStack([...screens, s]);
   const pop = () => setStack(screens.length > 1 ? screens.slice(0, -1) : screens);
-  const toBook = () => setStack([{ name: 'book', start: { serviceIds: [], staffId: undefined, lockedStaff: false }, key: Date.now() }]);
+  const toBook = () =>
+    setStack([
+      { name: 'book', start: { serviceIds: [], staffId: undefined, lockedStaff: false }, key: Date.now() },
+    ]);
 
   const changeLang = (l: Lang) => {
     setLang(l);
@@ -89,7 +104,13 @@ export function MiniApp({ startParam, hash }: { startParam: string | null; hash:
           </select>
         </label>
         {top.name === 'book' && (
-          <button type="button" className="icon-btn" aria-label={t.myBookings} data-testid="open-my-bookings" onClick={() => push({ name: 'list' })}>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label={t.myBookings}
+            data-testid="open-my-bookings"
+            onClick={() => push({ name: 'list' })}
+          >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path
                 d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2.2a2.8 2.8 0 0 0 0 5.6V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.2a2.8 2.8 0 0 0 0-5.6z"
@@ -103,10 +124,21 @@ export function MiniApp({ startParam, hash }: { startParam: string | null; hash:
       </header>
       <main className="mini-main">
         {top.name === 'book' && (
-          <BookingFlow key={top.key} catalog={c} me={me.data} start={top.start} onOpenBookings={() => push({ name: 'list' })} />
+          <BookingFlow
+            key={top.key}
+            catalog={c}
+            me={me.data}
+            start={top.start}
+            onOpenBookings={() => push({ name: 'list' })}
+          />
         )}
         {top.name === 'list' && (
-          <BookingList catalog={c} onOpen={(id) => push({ name: 'detail', id })} onBook={toBook} onBack={pop} />
+          <BookingList
+            catalog={c}
+            onOpen={(id) => push({ name: 'detail', id })}
+            onBook={toBook}
+            onBack={pop}
+          />
         )}
         {top.name === 'detail' && <BookingDetail key={top.id} catalog={c} id={top.id} onBack={pop} />}
       </main>

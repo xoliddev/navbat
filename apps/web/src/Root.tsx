@@ -1,6 +1,6 @@
 import type { Lang } from '@navbat/core';
 import { MotionConfig } from 'motion/react';
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { MiniApp } from './app/MiniApp';
 import type { DemoBackend } from './backend/demo';
 import { createHttpBackend } from './backend/http';

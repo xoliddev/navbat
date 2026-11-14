@@ -8,7 +8,17 @@ import { useTime } from '../lib';
  * The queue ticket — Navbat's signature object. On first show it is "printed": it slides out
  * of a slot like a ticket from a queue machine, then the stub settles.
  */
-export function Ticket({ booking, tz, business, print }: { booking: BookingDTO; tz: string; business: string; print?: boolean }) {
+export function Ticket({
+  booking,
+  tz,
+  business,
+  print,
+}: {
+  booking: BookingDTO;
+  tz: string;
+  business: string;
+  print?: boolean;
+}) {
   const { t, lang } = useI18n();
   const time = useTime(tz);
   const reduce = useReducedMotion();
@@ -27,7 +37,9 @@ export function Ticket({ booking, tz, business, print }: { booking: BookingDTO; 
         >
           <header className="ticket-top">
             <span className="ticket-biz">{business}</span>
-            <span className="ticket-label">{booking.status === 'pending' ? t.ticketPending : t.ticketTitle}</span>
+            <span className="ticket-label">
+              {booking.status === 'pending' ? t.ticketPending : t.ticketTitle}
+            </span>
             <span className="ticket-code num" data-testid="ticket-code">
               {booking.code}
             </span>

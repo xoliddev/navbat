@@ -1,13 +1,21 @@
-import { formatDateLong, formatDuration, formatMoney, formatPhone, normalizePhone, pickText, utcToZoned } from '@navbat/core';
+import {
+  formatDateLong,
+  formatDuration,
+  formatMoney,
+  formatPhone,
+  normalizePhone,
+  pickText,
+  utcToZoned,
+} from '@navbat/core';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import type { BookingDTO, CatalogDTO, CreatedBookingDTO, Me, SlotDTO } from '../backend/types';
 import { errorText, useI18n } from '../i18n';
 import { useBackend, useTime, useToast } from '../lib';
 import { tg, useBackButton, useMainButton } from '../telegram';
-import { DateTimePicker, MasterPicker, ServicePicker, quote } from './pickers';
-import { Ticket } from './Ticket';
 import { PaymentSheet } from './PaymentSheet';
+import { DateTimePicker, MasterPicker, quote, ServicePicker } from './pickers';
+import { Ticket } from './Ticket';
 
 export interface FlowStart {
   serviceIds: string[];
@@ -23,7 +31,11 @@ export function Stepper({ step }: { step: number }) {
   return (
     <ol className="stepper" aria-label="Progress">
       {STEPS.map((k, i) => (
-        <li key={k} className={i < step ? 'done' : i === step ? 'now' : ''} aria-current={i === step ? 'step' : undefined}>
+        <li
+          key={k}
+          className={i < step ? 'done' : i === step ? 'now' : ''}
+          aria-current={i === step ? 'step' : undefined}
+        >
           <span className="stepper-bar" />
           <span className="stepper-label">{t[k]}</span>
         </li>
@@ -63,7 +75,7 @@ export function BookingFlow({
   const [booking, setBooking] = useState<BookingDTO | null>(null);
   const [payOpen, setPayOpen] = useState(false);
 
-  const lockedStaff = start.lockedStaff ? catalog.staff.find((s) => s.id === start.staffId) ?? null : null;
+  const lockedStaff = start.lockedStaff ? (catalog.staff.find((s) => s.id === start.staffId) ?? null) : null;
   const services = serviceIds.map((id) => catalog.services.find((s) => s.id === id)!).filter(Boolean);
   const staff = staffId ? (catalog.staff.find((s) => s.id === staffId) ?? null) : null;
   const q = quote(services, staff);
@@ -126,7 +138,7 @@ export function BookingFlow({
   const main =
     step === 0
       ? {
-          text: serviceIds.length ? `${t.continue} · ${t.services(serviceIds.length)}` : t.chooseServices,
+          text: serviceIds.length ? `${t.continue} · ${t.services(serviceIds.length)}` : t.pickServiceFirst,
           visible: true,
           disabled: serviceIds.length === 0,
           onClick: () => go(start.lockedStaff ? 2 : 1),
@@ -224,7 +236,9 @@ export function BookingFlow({
                     </li>
                   )}
                 </ul>
-                {deposit > 0 && <p className="fine">{t.depositHint(catalog.business.settings.depositPercent)}</p>}
+                {deposit > 0 && (
+                  <p className="fine">{t.depositHint(catalog.business.settings.depositPercent)}</p>
+                )}
               </div>
               <form
                 className="form"
@@ -257,11 +271,20 @@ export function BookingFlow({
                     onBlur={() => phoneOk && setPhone(formatPhone(normalizePhone(phone)!))}
                     aria-invalid={touched && !phoneOk}
                   />
-                  {touched && !phoneOk ? <span className="error">{t.phoneInvalid}</span> : <span className="fine">{t.phoneHint}</span>}
+                  {touched && !phoneOk ? (
+                    <span className="error">{t.phoneInvalid}</span>
+                  ) : (
+                    <span className="fine">{t.phoneHint}</span>
+                  )}
                 </label>
                 <label className="field">
                   <span>{t.notes}</span>
-                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} />
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                  />
                 </label>
                 <button type="submit" hidden />
               </form>
@@ -269,7 +292,9 @@ export function BookingFlow({
           )}
           {step === 4 && booking && (
             <div className="step done">
-              <h1 className="step-title">{booking.status === 'pending' ? t.ticketPending : t.ticketIssued}</h1>
+              <h1 className="step-title">
+                {booking.status === 'pending' ? t.ticketPending : t.ticketIssued}
+              </h1>
               <Ticket booking={booking} tz={tz} business={catalog.business.name} print />
               <p className="fine center">{t.addToBot}</p>
               {booking.status === 'pending' && created?.payment && (

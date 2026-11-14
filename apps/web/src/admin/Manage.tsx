@@ -1,4 +1,12 @@
-import { type BusinessSettings, formatDuration, formatHm, formatMoney, parseHm, pickText, weekdayShort } from '@navbat/core';
+import {
+  type BusinessSettings,
+  formatDuration,
+  formatHm,
+  formatMoney,
+  parseHm,
+  pickText,
+  weekdayShort,
+} from '@navbat/core';
 import { useEffect, useState } from 'react';
 import type { AdminMe, CatalogDTO, ScheduleRuleDTO, ServiceDTO, StaffDTO } from '../backend/types';
 import { errorText, useI18n } from '../i18n';
@@ -35,7 +43,19 @@ export function ServicesView({ catalog, onSaved }: { catalog: CatalogDTO; onSave
     <section className="panel">
       <header className="panel-head">
         <h1>{a.services}</h1>
-        <button type="button" className="btn small" onClick={() => setEdit({ name: {}, durationMin: 30, price: 50_000, categoryId: catalog.categories[0]?.id ?? null, active: true })}>
+        <button
+          type="button"
+          className="btn small"
+          onClick={() =>
+            setEdit({
+              name: {},
+              durationMin: 30,
+              price: 50_000,
+              categoryId: catalog.categories[0]?.id ?? null,
+              active: true,
+            })
+          }
+        >
           + {a.addService}
         </button>
       </header>
@@ -46,11 +66,18 @@ export function ServicesView({ catalog, onSaved }: { catalog: CatalogDTO; onSave
             {catalog.services
               .filter((s) => s.categoryId === cat.id)
               .map((s) => (
-                <button key={s.id} type="button" className={`card-row ${s.active ? '' : 'inactive'}`} onClick={() => setEdit(s)}>
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`card-row ${s.active ? '' : 'inactive'}`}
+                  onClick={() => setEdit(s)}
+                >
                   <b>{pickText(s.name, lang)}</b>
                   <span className="muted">
                     {formatDuration(s.durationMin, lang)}
-                    {s.bufferBeforeMin || s.bufferAfterMin ? ` (+${s.bufferBeforeMin}/${s.bufferAfterMin})` : ''}
+                    {s.bufferBeforeMin || s.bufferAfterMin
+                      ? ` (+${s.bufferBeforeMin}/${s.bufferAfterMin})`
+                      : ''}
                   </span>
                   <span className="num">{formatMoney(s.price, lang)}</span>
                   {!s.active && <span className="chip">{a.hidden}</span>}
@@ -64,7 +91,17 @@ export function ServicesView({ catalog, onSaved }: { catalog: CatalogDTO; onSave
   );
 }
 
-function ServiceSheet({ value, catalog, onClose, onSaved }: { value: Partial<ServiceDTO> | null; catalog: CatalogDTO; onClose: () => void; onSaved: () => void }) {
+function ServiceSheet({
+  value,
+  catalog,
+  onClose,
+  onSaved,
+}: {
+  value: Partial<ServiceDTO> | null;
+  catalog: CatalogDTO;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const backend = useBackend();
   const { a, lang } = useAdminI18n();
   const [v, setV] = useState<Partial<ServiceDTO>>({});
@@ -98,12 +135,19 @@ function ServiceSheet({ value, catalog, onClose, onSaved }: { value: Partial<Ser
         {(['uz', 'ru', 'en'] as const).map((l) => (
           <label key={l} className={`field ${l === 'uz' ? 'span2' : ''}`}>
             <span>{l === 'uz' ? a.nameUz : l === 'ru' ? a.nameRu : a.nameEn}</span>
-            <input value={name[l] ?? ''} required={l === 'uz'} onChange={(e) => setV({ ...v, name: { ...name, [l]: e.target.value } })} />
+            <input
+              value={name[l] ?? ''}
+              required={l === 'uz'}
+              onChange={(e) => setV({ ...v, name: { ...name, [l]: e.target.value } })}
+            />
           </label>
         ))}
         <label className="field">
           <span>{a.category}</span>
-          <select value={v.categoryId ?? ''} onChange={(e) => setV({ ...v, categoryId: e.target.value || null })}>
+          <select
+            value={v.categoryId ?? ''}
+            onChange={(e) => setV({ ...v, categoryId: e.target.value || null })}
+          >
             {catalog.categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {pickText(c.name, lang)}
@@ -113,22 +157,53 @@ function ServiceSheet({ value, catalog, onClose, onSaved }: { value: Partial<Ser
         </label>
         <label className="field">
           <span>{a.duration}</span>
-          <input type="number" min={5} max={720} step={5} value={v.durationMin ?? ''} onChange={(e) => setV({ ...v, durationMin: Number(e.target.value) })} />
+          <input
+            type="number"
+            min={5}
+            max={720}
+            step={5}
+            value={v.durationMin ?? ''}
+            onChange={(e) => setV({ ...v, durationMin: Number(e.target.value) })}
+          />
         </label>
         <label className="field">
           <span>{a.price}</span>
-          <input type="number" min={0} step={1000} value={v.price ?? ''} onChange={(e) => setV({ ...v, price: Number(e.target.value) })} />
+          <input
+            type="number"
+            min={0}
+            step={1000}
+            value={v.price ?? ''}
+            onChange={(e) => setV({ ...v, price: Number(e.target.value) })}
+          />
         </label>
         <label className="field">
           <span>{a.bufferBefore}</span>
-          <input type="number" min={0} max={240} step={5} value={v.bufferBeforeMin ?? 0} onChange={(e) => setV({ ...v, bufferBeforeMin: Number(e.target.value) })} />
+          <input
+            type="number"
+            min={0}
+            max={240}
+            step={5}
+            value={v.bufferBeforeMin ?? 0}
+            onChange={(e) => setV({ ...v, bufferBeforeMin: Number(e.target.value) })}
+          />
         </label>
         <label className="field">
           <span>{a.bufferAfter}</span>
-          <input type="number" min={0} max={240} step={5} value={v.bufferAfterMin ?? 0} onChange={(e) => setV({ ...v, bufferAfterMin: Number(e.target.value) })} />
+          <input
+            type="number"
+            min={0}
+            max={240}
+            step={5}
+            value={v.bufferAfterMin ?? 0}
+            onChange={(e) => setV({ ...v, bufferAfterMin: Number(e.target.value) })}
+          />
         </label>
         <label className="check span2">
-          <input type="checkbox" checked={v.active ?? true} onChange={(e) => setV({ ...v, active: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={v.active ?? true}
+            onChange={(e) => setV({ ...v, active: e.target.checked })}
+          />
           {a.active}
         </label>
         <div className="span2 form-actions">
@@ -143,7 +218,15 @@ function ServiceSheet({ value, catalog, onClose, onSaved }: { value: Partial<Ser
 
 /* ---------------- team & schedules ---------------- */
 
-export function TeamView({ catalog, me, onSaved }: { catalog: CatalogDTO; me: AdminMe; onSaved: () => void }) {
+export function TeamView({
+  catalog,
+  me,
+  onSaved,
+}: {
+  catalog: CatalogDTO;
+  me: AdminMe;
+  onSaved: () => void;
+}) {
   const { a, lang } = useAdminI18n();
   const [edit, setEdit] = useState<Partial<StaffDTO> | null>(null);
   const canStaff = me.role === 'owner';
@@ -152,14 +235,26 @@ export function TeamView({ catalog, me, onSaved }: { catalog: CatalogDTO; me: Ad
       <header className="panel-head">
         <h1>{a.team}</h1>
         {canStaff && (
-          <button type="button" className="btn small" onClick={() => setEdit({ name: '', role: 'master', bookable: true, color: '#0f9d8a', services: [] })}>
+          <button
+            type="button"
+            className="btn small"
+            onClick={() =>
+              setEdit({ name: '', role: 'master', bookable: true, color: '#0f9d8a', services: [] })
+            }
+          >
             + {a.addMember}
           </button>
         )}
       </header>
       <div className="cards team">
         {catalog.staff.map((s) => (
-          <button key={s.id} type="button" className="card-row member" onClick={() => setEdit(s)} data-testid="team-member">
+          <button
+            key={s.id}
+            type="button"
+            className="card-row member"
+            onClick={() => setEdit(s)}
+            data-testid="team-member"
+          >
             <Avatar name={s.name} color={s.color} size={40} />
             <span>
               <b>{s.name}</b>
@@ -171,7 +266,13 @@ export function TeamView({ catalog, me, onSaved }: { catalog: CatalogDTO; me: Ad
           </button>
         ))}
       </div>
-      <StaffSheet value={edit} catalog={catalog} canEditProfile={canStaff} onClose={() => setEdit(null)} onSaved={onSaved} />
+      <StaffSheet
+        value={edit}
+        catalog={catalog}
+        canEditProfile={canStaff}
+        onClose={() => setEdit(null)}
+        onSaved={onSaved}
+      />
     </section>
   );
 }
@@ -240,7 +341,11 @@ function StaffSheet({
                 bookable: v.bookable,
                 active: v.active ?? true,
                 telegramUserId: v.telegramUserId ?? null,
-                services: offers.map((o) => ({ serviceId: o.serviceId, price: o.price, durationMin: o.durationMin })),
+                services: offers.map((o) => ({
+                  serviceId: o.serviceId,
+                  price: o.price,
+                  durationMin: o.durationMin,
+                })),
               });
               id = saved.id;
             }
@@ -250,7 +355,12 @@ function StaffSheet({
       >
         <label className="field">
           <span>{a.name}</span>
-          <input value={v.name ?? ''} required disabled={!canEditProfile} onChange={(e) => setV({ ...v, name: e.target.value })} />
+          <input
+            value={v.name ?? ''}
+            required
+            disabled={!canEditProfile}
+            onChange={(e) => setV({ ...v, name: e.target.value })}
+          />
         </label>
         <label className="field">
           <span>{a.title}</span>
@@ -262,7 +372,11 @@ function StaffSheet({
         </label>
         <label className="field">
           <span>{a.role}</span>
-          <select value={v.role ?? 'master'} disabled={!canEditProfile} onChange={(e) => setV({ ...v, role: e.target.value as StaffDTO['role'] })}>
+          <select
+            value={v.role ?? 'master'}
+            disabled={!canEditProfile}
+            onChange={(e) => setV({ ...v, role: e.target.value as StaffDTO['role'] })}
+          >
             {(['owner', 'admin', 'master'] as const).map((r) => (
               <option key={r} value={r}>
                 {a.roles[r]}
@@ -272,10 +386,20 @@ function StaffSheet({
         </label>
         <label className="field">
           <span>{a.color}</span>
-          <input type="color" value={v.color ?? '#3355dd'} disabled={!canEditProfile} onChange={(e) => setV({ ...v, color: e.target.value })} />
+          <input
+            type="color"
+            value={v.color ?? '#3355dd'}
+            disabled={!canEditProfile}
+            onChange={(e) => setV({ ...v, color: e.target.value })}
+          />
         </label>
         <label className="check span2">
-          <input type="checkbox" checked={!!v.bookable} disabled={!canEditProfile} onChange={(e) => setV({ ...v, bookable: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={!!v.bookable}
+            disabled={!canEditProfile}
+            onChange={(e) => setV({ ...v, bookable: e.target.checked })}
+          />
           {a.bookable}
         </label>
         {v.bookable && (
@@ -314,7 +438,11 @@ function StaffSheet({
                           onChange={(e) =>
                             setV({
                               ...v,
-                              services: offers.map((x) => (x.serviceId === s.id ? { ...x, price: e.target.value ? Number(e.target.value) : null } : x)),
+                              services: offers.map((x) =>
+                                x.serviceId === s.id
+                                  ? { ...x, price: e.target.value ? Number(e.target.value) : null }
+                                  : x,
+                              ),
                             })
                           }
                         />
@@ -329,7 +457,9 @@ function StaffSheet({
                             setV({
                               ...v,
                               services: offers.map((x) =>
-                                x.serviceId === s.id ? { ...x, durationMin: e.target.value ? Number(e.target.value) : null } : x,
+                                x.serviceId === s.id
+                                  ? { ...x, durationMin: e.target.value ? Number(e.target.value) : null }
+                                  : x,
                               ),
                             })
                           }
@@ -351,12 +481,22 @@ function StaffSheet({
                     <div key={wd} className="sched-row">
                       <b>{weekdayShort(wd, lang)}</b>
                       <label className="check">
-                        <input type="checkbox" checked={!!work} onChange={(e) => setDay(wd, 'work', e.target.checked ? [600, 1200] : null)} />
+                        <input
+                          type="checkbox"
+                          checked={!!work}
+                          onChange={(e) => setDay(wd, 'work', e.target.checked ? [600, 1200] : null)}
+                        />
                         {work ? a.work : a.dayOff}
                       </label>
                       {work && (
                         <>
-                          <input className="input mini-input" type="time" value={formatHm(work.startMin)} onChange={(e) => setDay(wd, 'work', [hm(e.target.value), work.endMin])} aria-label={`${a.work} ${a.start}`} />
+                          <input
+                            className="input mini-input"
+                            type="time"
+                            value={formatHm(work.startMin)}
+                            onChange={(e) => setDay(wd, 'work', [hm(e.target.value), work.endMin])}
+                            aria-label={`${a.work} ${a.start}`}
+                          />
                           <input
                             className="input mini-input"
                             type="time"
@@ -365,13 +505,29 @@ function StaffSheet({
                             aria-label={`${a.work} ${a.end}`}
                           />
                           <label className="check">
-                            <input type="checkbox" checked={!!brk} onChange={(e) => setDay(wd, 'break', e.target.checked ? [780, 840] : null)} />
+                            <input
+                              type="checkbox"
+                              checked={!!brk}
+                              onChange={(e) => setDay(wd, 'break', e.target.checked ? [780, 840] : null)}
+                            />
                             {a.break}
                           </label>
                           {brk && (
                             <>
-                              <input className="input mini-input" type="time" value={formatHm(brk.startMin)} onChange={(e) => setDay(wd, 'break', [hm(e.target.value), brk.endMin])} aria-label={`${a.break} ${a.start}`} />
-                              <input className="input mini-input" type="time" value={formatHm(brk.endMin)} onChange={(e) => setDay(wd, 'break', [brk.startMin, hm(e.target.value)])} aria-label={`${a.break} ${a.end}`} />
+                              <input
+                                className="input mini-input"
+                                type="time"
+                                value={formatHm(brk.startMin)}
+                                onChange={(e) => setDay(wd, 'break', [hm(e.target.value), brk.endMin])}
+                                aria-label={`${a.break} ${a.start}`}
+                              />
+                              <input
+                                className="input mini-input"
+                                type="time"
+                                value={formatHm(brk.endMin)}
+                                onChange={(e) => setDay(wd, 'break', [brk.startMin, hm(e.target.value)])}
+                                aria-label={`${a.break} ${a.end}`}
+                              />
                             </>
                           )}
                         </>
@@ -404,7 +560,14 @@ export function SettingsView({ catalog, onSaved }: { catalog: CatalogDTO; onSave
   const num = (k: keyof BusinessSettings, label: string, min: number, max: number, step = 1) => (
     <label className="field">
       <span>{label}</span>
-      <input type="number" min={min} max={max} step={step} value={s[k] as number} onChange={(e) => setS({ ...s, [k]: Number(e.target.value) })} />
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={s[k] as number}
+        onChange={(e) => setS({ ...s, [k]: Number(e.target.value) })}
+      />
     </label>
   );
   return (
@@ -430,7 +593,12 @@ export function SettingsView({ catalog, onSaved }: { catalog: CatalogDTO; onSave
         {num('depositPercent', a.depositPercent, 0, 100, 5)}
         <label className="field">
           <span>{a.provider}</span>
-          <select value={s.paymentProvider} onChange={(e) => setS({ ...s, paymentProvider: e.target.value as BusinessSettings['paymentProvider'] })}>
+          <select
+            value={s.paymentProvider}
+            onChange={(e) =>
+              setS({ ...s, paymentProvider: e.target.value as BusinessSettings['paymentProvider'] })
+            }
+          >
             <option value="none">—</option>
             <option value="sandbox">Sandbox</option>
             <option value="payme">Payme</option>

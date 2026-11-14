@@ -6,6 +6,10 @@ import { useAsync, useBackend, useTime } from '../lib';
 import { statusChip } from './BookingDrawer';
 import { useAdminI18n } from './strings';
 
+function openClient(id: string) {
+  window.location.hash = `#/admin/clients/${id}`;
+}
+
 export function ClientsView({ catalog }: { catalog: CatalogDTO }) {
   const backend = useBackend();
   const { a, lang } = useAdminI18n();
@@ -23,7 +27,14 @@ export function ClientsView({ catalog }: { catalog: CatalogDTO }) {
     <section className="panel">
       <header className="panel-head">
         <h1>{a.clients}</h1>
-        <input className="input search" type="search" placeholder={a.search} value={search} onChange={(e) => setSearch(e.target.value)} aria-label={a.search} />
+        <input
+          className="input search"
+          type="search"
+          placeholder={a.search}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label={a.search}
+        />
       </header>
       <div className="table-wrap">
         <table className="table" data-testid="clients-table">
@@ -40,14 +51,21 @@ export function ClientsView({ catalog }: { catalog: CatalogDTO }) {
           </thead>
           <tbody>
             {(list.data ?? []).map((c) => (
-              <tr key={c.id} onClick={() => (window.location.hash = `#/admin/clients/${c.id}`)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && (window.location.hash = `#/admin/clients/${c.id}`)}>
+              <tr
+                key={c.id}
+                onClick={() => openClient(c.id)}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && openClient(c.id)}
+              >
                 <td>
                   <b>{c.name}</b>
                   {c.telegramUserId ? <span className="tg-dot" title="Telegram" /> : null}
                 </td>
                 <td className="num-ui">{c.phone ? formatPhone(c.phone) : '—'}</td>
                 <td className="r num-ui">{c.visits}</td>
-                <td className="r num-ui">{c.noShows ? <span className="chip bad">{c.noShows}</span> : '0'}</td>
+                <td className="r num-ui">
+                  {c.noShows ? <span className="chip bad">{c.noShows}</span> : '0'}
+                </td>
                 <td className="r num-ui">{formatMoney(c.totalSpent, lang)}</td>
                 <td>{day(c.lastVisit)}</td>
                 <td>{day(c.nextVisit)}</td>

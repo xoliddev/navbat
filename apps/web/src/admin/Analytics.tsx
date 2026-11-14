@@ -1,4 +1,12 @@
-import { addDays, formatMoney, parseLocalDate, pickText, todayIn, weekdayShort, isoWeekday } from '@navbat/core';
+import {
+  addDays,
+  formatMoney,
+  isoWeekday,
+  parseLocalDate,
+  pickText,
+  todayIn,
+  weekdayShort,
+} from '@navbat/core';
 import { useState } from 'react';
 import type { CatalogDTO } from '../backend/types';
 import { errorText, useI18n } from '../i18n';
@@ -78,7 +86,9 @@ export function AnalyticsView({ catalog }: { catalog: CatalogDTO }) {
             <div className="kpi">
               <span>{a.noShows}</span>
               <b className="num">{d.totals.noShows}</b>
-              <small>{d.totals.completed ? pct(d.totals.noShows / (d.totals.completed + d.totals.noShows)) : '0%'}</small>
+              <small>
+                {d.totals.completed ? pct(d.totals.noShows / (d.totals.completed + d.totals.noShows)) : '0%'}
+              </small>
             </div>
             <div className="kpi">
               <span>{a.avgTicket}</span>
@@ -93,7 +103,13 @@ export function AnalyticsView({ catalog }: { catalog: CatalogDTO }) {
           <div className="charts">
             <figure className="chart-card wide">
               <figcaption>{a.byDay}</figcaption>
-              <svg className="bars" viewBox={`0 0 ${d.byDay.length * 20} 120`} preserveAspectRatio="none" role="img" aria-label={a.byDay}>
+              <svg
+                className="bars"
+                viewBox={`0 0 ${d.byDay.length * 20} 120`}
+                preserveAspectRatio="none"
+                role="img"
+                aria-label={a.byDay}
+              >
                 {d.byDay.map((x, i) => {
                   const h = (x.bookings / maxDay) * 100;
                   const wd = isoWeekday(x.date);
@@ -102,7 +118,14 @@ export function AnalyticsView({ catalog }: { catalog: CatalogDTO }) {
                       <title>
                         {x.date}: {x.bookings} · {formatMoney(x.revenue, lang)}
                       </title>
-                      <rect x={i * 20 + 3} y={110 - h} width={14} height={Math.max(h, 1)} rx={3} className={wd >= 6 ? 'weekend' : ''} />
+                      <rect
+                        x={i * 20 + 3}
+                        y={110 - h}
+                        width={14}
+                        height={Math.max(h, 1)}
+                        rx={3}
+                        className={wd >= 6 ? 'weekend' : ''}
+                      />
                     </g>
                   );
                 })}

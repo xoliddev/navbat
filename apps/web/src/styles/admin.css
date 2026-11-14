@@ -121,11 +121,11 @@
   color: var(--text);
   box-shadow: var(--shadow-1);
 }
-.small-select {
-  min-height: 34px !important;
-  padding: 4px 10px !important;
-  width: auto !important;
-  font-size: 14px !important;
+.input.small-select {
+  min-height: 34px;
+  padding: 4px 10px;
+  width: auto;
+  font-size: 14px;
 }
 .cal-grid-wrap {
   overflow: auto;
@@ -220,7 +220,11 @@
   z-index: 2;
   border: 1px dashed color-mix(in srgb, var(--anor) 50%, var(--line));
   border-radius: 10px;
-  background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--anor) 8%, transparent) 0 8px, transparent 8px 16px);
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--anor) 8%, transparent) 0 8px,
+    transparent 8px 16px
+  );
   color: color-mix(in srgb, var(--anor) 70%, var(--text));
   font-size: 12px;
   font-weight: 600;
@@ -238,7 +242,7 @@
   pointer-events: none;
 }
 .cal-now::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -4px;
   top: -3px;
@@ -267,9 +271,18 @@
   touch-action: none;
   user-select: none;
 }
+.cal-bk.short {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
 .cal-bk.dragging {
   cursor: grabbing;
-  box-shadow: inset 4px 0 0 var(--c), var(--shadow-2);
+  box-shadow:
+    inset 4px 0 0 var(--c),
+    var(--shadow-2);
   opacity: 0.92;
 }
 .cal-bk.saving {
@@ -284,7 +297,11 @@
   cursor: pointer;
 }
 .cal-bk.st-no_show {
-  background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--anor) 12%, var(--surface)) 0 6px, var(--surface) 6px 12px);
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--anor) 12%, var(--surface)) 0 6px,
+    var(--surface) 6px 12px
+  );
   border-color: color-mix(in srgb, var(--anor) 40%, transparent);
   box-shadow: inset 4px 0 0 var(--anor);
   cursor: pointer;
@@ -584,11 +601,11 @@
 .sched-row .check {
   min-width: 110px;
 }
-.mini-input {
-  width: 110px !important;
-  min-height: 36px !important;
-  padding: 6px 10px !important;
-  font-size: 14px !important;
+.input.mini-input {
+  width: 110px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 14px;
 }
 
 /* analytics */
@@ -629,7 +646,7 @@
 .kpi.accent small {
   color: #b9c1dd;
 }
-:root[data-theme='dark'] .kpi.accent {
+:root[data-theme="dark"] .kpi.accent {
   background: var(--cobalt);
   color: #0d1330;
 }

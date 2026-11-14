@@ -6,7 +6,13 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 interface TgButton {
-  setParams(p: { text?: string; is_active?: boolean; is_visible?: boolean; color?: string; text_color?: string }): void;
+  setParams(p: {
+    text?: string;
+    is_active?: boolean;
+    is_visible?: boolean;
+    color?: string;
+    text_color?: string;
+  }): void;
   onClick(cb: () => void): void;
   offClick(cb: () => void): void;
   show(): void;
@@ -42,7 +48,7 @@ declare global {
 
 function realWebApp(): TgWebApp | null {
   const w = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined;
-  return w && w.initData ? w : null;
+  return w?.initData ? w : null;
 }
 
 export const tg = {
@@ -144,7 +150,13 @@ export interface MainButtonState {
   onClick: (() => void) | null;
 }
 
-let mainState: MainButtonState = { text: '', visible: false, disabled: false, progress: false, onClick: null };
+let mainState: MainButtonState = {
+  text: '',
+  visible: false,
+  disabled: false,
+  progress: false,
+  onClick: null,
+};
 let backHandler: (() => void) | null = null;
 const listeners = new Set<() => void>();
 const emit = () => {
@@ -162,7 +174,13 @@ export function useMockChrome() {
 }
 
 /** Declarative MainButton: native in Telegram, rendered by TelegramChrome elsewhere. */
-export function useMainButton(opts: { text: string; visible?: boolean; disabled?: boolean; progress?: boolean; onClick: () => void }) {
+export function useMainButton(opts: {
+  text: string;
+  visible?: boolean;
+  disabled?: boolean;
+  progress?: boolean;
+  onClick: () => void;
+}) {
   const cb = useRef(opts.onClick);
   cb.current = opts.onClick;
   const visible = opts.visible ?? true;
@@ -220,7 +238,8 @@ export function useBackButton(handler: (() => void) | null) {
 /** Loads telegram-web-app.js only when the page was opened from Telegram. */
 export async function loadTelegramScript(): Promise<void> {
   const hash = window.location.hash;
-  const looksLikeTelegram = /tgWebAppData|tgWebAppVersion/.test(hash) || /tgWebApp/.test(window.location.search);
+  const looksLikeTelegram =
+    /tgWebAppData|tgWebAppVersion/.test(hash) || /tgWebApp/.test(window.location.search);
   if (!looksLikeTelegram) return;
   await new Promise<void>((resolve) => {
     const s = document.createElement('script');

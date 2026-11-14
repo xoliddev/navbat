@@ -1,8 +1,8 @@
-import { type Lang, formatTimeIn, pickText, utcToZoned } from '@navbat/core';
+import { formatTimeIn, type Lang, pickText, utcToZoned } from '@navbat/core';
 import { AnimatePresence, motion } from 'motion/react';
 import {
-  type ReactNode,
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -120,7 +120,7 @@ export function Avatar({ name, color, size = 44 }: { name: string; color: string
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   return (
-    <span className="stars" aria-label={`${value} / 5`} style={{ fontSize: size }}>
+    <span className="stars" role="img" aria-label={`${value} / 5`} style={{ fontSize: size }}>
       {[1, 2, 3, 4, 5].map((n) => (
         <span key={n} className={n <= Math.round(value) ? 'on' : ''}>
           ★
@@ -166,7 +166,13 @@ export function Sheet({
   return (
     <AnimatePresence>
       {open && (
-        <motion.div className="sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+        <motion.div
+          className="sheet-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
           <motion.div
             className={`sheet ${wide ? 'wide' : ''}`}
             role="dialog"

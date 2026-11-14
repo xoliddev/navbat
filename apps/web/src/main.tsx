@@ -13,7 +13,8 @@ async function boot() {
   await loadTelegramScript();
   // Telegram passes launch params in the hash; keep only our own routes.
   const launchHash = window.location.hash;
-  if (/tgWebApp/.test(launchHash)) history.replaceState(null, '', window.location.pathname + window.location.search);
+  if (/tgWebApp/.test(launchHash))
+    history.replaceState(null, '', window.location.pathname + window.location.search);
   tg.ready();
   createRoot(document.getElementById('root')!).render(<Root demo={isDemo} launchHash={launchHash} />);
 }

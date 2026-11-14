@@ -82,7 +82,9 @@ h3 {
   color: var(--accent-text);
   font-weight: 600;
   font-size: 15px;
-  transition: transform 0.12s var(--ease-out), background-color 0.2s;
+  transition:
+    transform 0.12s var(--ease-out),
+    background-color 0.2s;
   white-space: nowrap;
 }
 .btn:active {
@@ -240,7 +242,7 @@ h3 {
   box-shadow: var(--shadow-2);
   pointer-events: auto;
 }
-:root[data-theme='dark'] .toast {
+:root[data-theme="dark"] .toast {
   background: #e9edf9;
   color: #0d1330;
 }
@@ -253,7 +255,9 @@ h3 {
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over component styles */
     animation-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over component styles */
     transition-duration: 0.001ms !important;
   }
 }

@@ -30,7 +30,9 @@ export function BookingList({
   useBackButton(onBack);
   useMainButton({ text: t.bookNow, onClick: onBook });
   const now = backend.now();
-  const upcoming = (list.data ?? []).filter((b) => ACTIVE.has(b.status) && b.endAt > now).sort((a, b) => a.startAt - b.startAt);
+  const upcoming = (list.data ?? [])
+    .filter((b) => ACTIVE.has(b.status) && b.endAt > now)
+    .sort((a, b) => a.startAt - b.startAt);
   const past = (list.data ?? []).filter((b) => !upcoming.includes(b));
 
   const row = (b: BookingDTO, i: number) => (
@@ -40,10 +42,21 @@ export function BookingList({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(i, 6) * 0.03 }}
     >
-      <button type="button" className={`bk-row status-${b.status}`} data-testid="my-booking" onClick={() => onOpen(b.id)}>
+      <button
+        type="button"
+        className={`bk-row status-${b.status}`}
+        data-testid="my-booking"
+        onClick={() => onOpen(b.id)}
+      >
         <span className="bk-date">
           <span className="num">{Number(utcToZoned(b.startAt, tz).date.slice(8))}</span>
-          <small>{formatDateLong(utcToZoned(b.startAt, tz).date, lang).replace(/^\d+[- ]?/, '').split(',')[0]}</small>
+          <small>
+            {
+              formatDateLong(utcToZoned(b.startAt, tz).date, lang)
+                .replace(/^\d+[- ]?/, '')
+                .split(',')[0]
+            }
+          </small>
         </span>
         <span className="bk-body">
           <span className="bk-time num">
@@ -52,7 +65,9 @@ export function BookingList({
           <span className="bk-what">{b.items.map((x) => pickText(x.name, lang)).join(' + ')}</span>
           <span className="bk-who">{b.staffName}</span>
         </span>
-        <span className={`chip ${b.status === 'confirmed' || b.status === 'completed' ? 'ok' : b.status === 'pending' ? 'warn' : 'bad'}`}>
+        <span
+          className={`chip ${b.status === 'confirmed' || b.status === 'completed' ? 'ok' : b.status === 'pending' ? 'warn' : 'bad'}`}
+        >
           {t.status[b.status]}
         </span>
       </button>
@@ -92,7 +107,15 @@ export function BookingList({
   );
 }
 
-export function BookingDetail({ catalog, id, onBack }: { catalog: CatalogDTO; id: string; onBack: () => void }) {
+export function BookingDetail({
+  catalog,
+  id,
+  onBack,
+}: {
+  catalog: CatalogDTO;
+  id: string;
+  onBack: () => void;
+}) {
   const backend = useBackend();
   const toast = useToast();
   const { t, lang } = useI18n();
@@ -149,7 +172,16 @@ export function BookingDetail({ catalog, id, onBack }: { catalog: CatalogDTO; id
     },
   });
 
-  if (!b) return <div className="step">{res.error ? <p className="empty-line">{errorText(t, res.error)}</p> : <div className="spinner center" />}</div>;
+  if (!b)
+    return (
+      <div className="step">
+        {res.error ? (
+          <p className="empty-line">{errorText(t, res.error)}</p>
+        ) : (
+          <div className="spinner center" />
+        )}
+      </div>
+    );
 
   if (mode === 'reschedule') {
     return (
@@ -168,13 +200,19 @@ export function BookingDetail({ catalog, id, onBack }: { catalog: CatalogDTO; id
     <div className="step">
       <Ticket booking={b} tz={tz} business={catalog.business.name} />
       <div className="detail-status">
-        <span className={`chip ${b.status === 'confirmed' || b.status === 'completed' ? 'ok' : b.status === 'pending' ? 'warn' : 'bad'}`}>
+        <span
+          className={`chip ${b.status === 'confirmed' || b.status === 'completed' ? 'ok' : b.status === 'pending' ? 'warn' : 'bad'}`}
+        >
           {t.status[b.status]}
         </span>
         {b.runningLateMin ? <span className="chip warn">{t.lateSent(b.runningLateMin)}</span> : null}
       </div>
       {ACTIVE.has(b.status) && (
-        <p className="fine">{changeable ? t.cancelUntil(`${formatDateLong(utcToZoned(deadline, tz).date, lang)}, ${time.hm(deadline)}`) : t.cancelClosed}</p>
+        <p className="fine">
+          {changeable
+            ? t.cancelUntil(`${formatDateLong(utcToZoned(deadline, tz).date, lang)}, ${time.hm(deadline)}`)
+            : t.cancelClosed}
+        </p>
       )}
       {b.status === 'pending' && b.payUrl && (
         <button type="button" className="btn block" onClick={() => setPayOpen(true)}>
@@ -221,7 +259,12 @@ export function BookingDetail({ catalog, id, onBack }: { catalog: CatalogDTO; id
           </div>
           <label className="field">
             <span className="sr-only">{t.ratePlaceholder}</span>
-            <textarea placeholder={t.ratePlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} rows={2} />
+            <textarea
+              placeholder={t.ratePlaceholder}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={2}
+            />
           </label>
         </section>
       )}
@@ -233,7 +276,12 @@ export function BookingDetail({ catalog, id, onBack }: { catalog: CatalogDTO; id
         </section>
       )}
       {changeable && (
-        <button type="button" className="btn danger block" data-testid="cancel-booking" onClick={() => setConfirmCancel(true)}>
+        <button
+          type="button"
+          className="btn danger block"
+          data-testid="cancel-booking"
+          onClick={() => setConfirmCancel(true)}
+        >
           {t.cancel}
         </button>
       )}
@@ -262,7 +310,12 @@ export function BookingDetail({ catalog, id, onBack }: { catalog: CatalogDTO; id
         <PaymentSheet
           open={payOpen}
           onClose={() => setPayOpen(false)}
-          payment={{ provider: 'sandbox', reference: b.payUrl.split('/').pop()!, payUrl: b.payUrl, amount: b.depositAmount }}
+          payment={{
+            provider: 'sandbox',
+            reference: b.payUrl.split('/').pop()!,
+            payUrl: b.payUrl,
+            amount: b.depositAmount,
+          }}
           onPaid={() => {
             setPayOpen(false);
             res.reload();

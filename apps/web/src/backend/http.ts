@@ -23,8 +23,15 @@ export function createHttpBackend(opts: HttpOptions): Backend {
     });
     if (res.status === 204) return undefined as T;
     if (!res.ok) {
-      const data = (await res.json().catch(() => null)) as { error?: { code: string; message: string; details?: Record<string, unknown> } } | null;
-      throw new ApiError(data?.error?.code ?? 'INTERNAL', data?.error?.message ?? res.statusText, res.status, data?.error?.details);
+      const data = (await res.json().catch(() => null)) as {
+        error?: { code: string; message: string; details?: Record<string, unknown> };
+      } | null;
+      throw new ApiError(
+        data?.error?.code ?? 'INTERNAL',
+        data?.error?.message ?? res.statusText,
+        res.status,
+        data?.error?.details,
+      );
     }
     return (raw ? await res.text() : await res.json()) as T;
   }
@@ -45,7 +52,8 @@ export function createHttpBackend(opts: HttpOptions): Backend {
     catalog: () => call('GET', '/catalog'),
     slots: (x) => call('GET', `/slots${q({ ...sq(x), date: x.date })}`),
     availability: (x) => call('GET', `/availability${q({ ...sq(x), month: x.month })}`),
-    firstAvailable: async (x) => (await call<{ date: string | null }>('GET', `/first-available${q(sq(x))}`)).date,
+    firstAvailable: async (x) =>
+      (await call<{ date: string | null }>('GET', `/first-available${q(sq(x))}`)).date,
     me: () => call('GET', '/me'),
     patchMe: (body) => call('PATCH', '/me', body),
     myBookings: () => call('GET', '/me/bookings'),
@@ -55,13 +63,16 @@ export function createHttpBackend(opts: HttpOptions): Backend {
     cancel: (id, reason) => call('POST', `/bookings/${id}/cancel`, { reason }),
     late: (id, minutes) => call('POST', `/bookings/${id}/late`, { minutes }),
     review: (id, rating, comment) => call('POST', `/bookings/${id}/review`, { rating, comment }),
-    completeSandboxPayment: (ref) => call('POST', `/payments/sandbox/${encodeURIComponent(ref)}/complete`, {}),
+    completeSandboxPayment: (ref) =>
+      call('POST', `/payments/sandbox/${encodeURIComponent(ref)}/complete`, {}),
     adminMe: () => call('GET', '/admin/me'),
     adminCatalog: () => call('GET', '/admin/catalog'),
-    calendar: (x) => call('GET', `/admin/calendar${q({ from: x.from, to: x.to, staff: x.staffIds?.join(',') })}`),
+    calendar: (x) =>
+      call('GET', `/admin/calendar${q({ from: x.from, to: x.to, staff: x.staffIds?.join(',') })}`),
     adminCreateBooking: (body) => call('POST', '/admin/bookings', body),
     adminBooking: (id) => call('GET', `/admin/bookings/${id}`),
-    adminReschedule: (id, start, staffId) => call('POST', `/admin/bookings/${id}/reschedule`, { start, staffId }),
+    adminReschedule: (id, start, staffId) =>
+      call('POST', `/admin/bookings/${id}/reschedule`, { start, staffId }),
     adminCancel: (id, reason) => call('POST', `/admin/bookings/${id}/cancel`, { reason }),
     adminStatus: (id, event) => call('POST', `/admin/bookings/${id}/status`, { event }),
     createTimeOff: (body) => call('POST', '/admin/time-off', body),

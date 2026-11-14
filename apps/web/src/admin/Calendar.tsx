@@ -42,7 +42,15 @@ interface DragState {
   moved: boolean;
 }
 
-export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe }) {
+export function CalendarView({
+  catalog,
+  me,
+  initialDate,
+}: {
+  catalog: CatalogDTO;
+  me: AdminMe;
+  initialDate?: string;
+}) {
   const backend = useBackend();
   const toast = useToast();
   const { t } = useI18n();
@@ -51,7 +59,7 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
   const today = todayIn(tz, backend.now());
   const masters = catalog.staff.filter((s) => s.bookable && s.active);
   const isMaster = me.role === 'master';
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(initialDate ?? today);
   const [view, setView] = useState<'day' | 'week'>(isMaster ? 'week' : 'day');
   const [weekStaff, setWeekStaff] = useState(isMaster ? me.staffId : (masters[0]?.id ?? ''));
   const [openId, setOpenId] = useState<string | null>(null);
@@ -68,7 +76,12 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
   );
 
   const columns: Column[] = useMemo(() => {
-    if (view === 'week') return Array.from({ length: 7 }, (_, i) => ({ key: addDays(from, i), staffId: weekStaff, date: addDays(from, i) }));
+    if (view === 'week')
+      return Array.from({ length: 7 }, (_, i) => ({
+        key: addDays(from, i),
+        staffId: weekStaff,
+        date: addDays(from, i),
+      }));
     const list = cal.data?.staff ?? masters;
     return list.map((s) => ({ key: s.id, staffId: s.id, date }));
   }, [view, from, weekStaff, date, cal.data, masters]);
@@ -122,7 +135,16 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
   const onPointerDown = (e: RPointerEvent, b: BookingDTO, col: Column) => {
     if (e.button !== 0 || b.status === 'completed' || b.status === 'no_show') return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    setDrag({ id: b.id, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, deltaMin: 0, colKey: col.key, origColKey: col.key, moved: false });
+    setDrag({
+      id: b.id,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      deltaMin: 0,
+      colKey: col.key,
+      origColKey: col.key,
+      moved: false,
+    });
   };
   const onPointerMove = (e: RPointerEvent) => {
     if (!drag || e.pointerId !== drag.pointerId) return;
@@ -131,7 +153,8 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
     const moved = drag.moved || Math.abs(dy) > 5 || Math.abs(dx) > 5;
     const deltaMin = Math.round(dy / PPM / SNAP) * SNAP;
     const colKey = colUnder(e.clientX) ?? drag.colKey;
-    if (moved !== drag.moved || deltaMin !== drag.deltaMin || colKey !== drag.colKey) setDrag({ ...drag, moved, deltaMin, colKey });
+    if (moved !== drag.moved || deltaMin !== drag.deltaMin || colKey !== drag.colKey)
+      setDrag({ ...drag, moved, deltaMin, colKey });
   };
   const onPointerUp = async (e: RPointerEvent, b: BookingDTO) => {
     if (!drag || e.pointerId !== drag.pointerId) return;
@@ -178,32 +201,61 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
     <div className="cal">
       <div className="cal-toolbar">
         <div className="cal-nav">
-          <button type="button" className="icon-btn" aria-label="Previous" onClick={() => setDate(addDays(date, -step))}>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Previous"
+            onClick={() => setDate(addDays(date, -step))}
+          >
             ‹
           </button>
           <button type="button" className="btn small ghost" onClick={() => setDate(today)}>
             {a.today}
           </button>
-          <button type="button" className="icon-btn" aria-label="Next" onClick={() => setDate(addDays(date, step))}>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Next"
+            onClick={() => setDate(addDays(date, step))}
+          >
             ›
           </button>
           <h1 className="cal-title" data-testid="cal-title">
-            {view === 'day' ? formatDateLong(date, lang) : `${formatDateLong(from, lang).split(',')[0]} – ${formatDateLong(to, lang).split(',')[0]}`}
+            {view === 'day'
+              ? formatDateLong(date, lang)
+              : `${formatDateLong(from, lang).split(',')[0]} – ${formatDateLong(to, lang).split(',')[0]}`}
           </h1>
         </div>
         <div className="cal-actions">
           <div className="seg" role="tablist">
             {!isMaster && (
-              <button type="button" role="tab" aria-selected={view === 'day'} className={view === 'day' ? 'on' : ''} onClick={() => setView('day')}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'day'}
+                className={view === 'day' ? 'on' : ''}
+                onClick={() => setView('day')}
+              >
                 {a.day}
               </button>
             )}
-            <button type="button" role="tab" aria-selected={view === 'week'} className={view === 'week' ? 'on' : ''} onClick={() => setView('week')}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === 'week'}
+              className={view === 'week' ? 'on' : ''}
+              onClick={() => setView('week')}
+            >
               {a.week}
             </button>
           </div>
           {view === 'week' && !isMaster && (
-            <select className="input small-select" value={weekStaff} onChange={(e) => setWeekStaff(e.target.value)} aria-label={a.master}>
+            <select
+              className="input small-select"
+              value={weekStaff}
+              onChange={(e) => setWeekStaff(e.target.value)}
+              aria-label={a.master}
+            >
               {masters.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
@@ -214,7 +266,14 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
           <button
             type="button"
             className="btn small ghost"
-            onClick={() => setPreset({ kind: 'block', staffId: view === 'week' ? weekStaff : (isMaster ? me.staffId : masters[0]?.id ?? ''), date, minute: 13 * 60 })}
+            onClick={() =>
+              setPreset({
+                kind: 'block',
+                staffId: view === 'week' ? weekStaff : isMaster ? me.staffId : (masters[0]?.id ?? ''),
+                date,
+                minute: 13 * 60,
+              })
+            }
           >
             {a.blockTime}
           </button>
@@ -222,7 +281,14 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
             type="button"
             className="btn small"
             data-testid="new-booking"
-            onClick={() => setPreset({ kind: 'booking', staffId: view === 'week' ? weekStaff : (isMaster ? me.staffId : masters[0]?.id ?? ''), date, minute: null })}
+            onClick={() =>
+              setPreset({
+                kind: 'booking',
+                staffId: view === 'week' ? weekStaff : isMaster ? me.staffId : (masters[0]?.id ?? ''),
+                date,
+                minute: null,
+              })
+            }
           >
             + {a.newBooking}
           </button>
@@ -231,12 +297,20 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
       <p className="cal-hint">{isMaster ? a.masterNote : a.dragHint}</p>
 
       <div className={`cal-grid-wrap ${cal.loading ? 'loading' : ''}`}>
-        <div className="cal-grid" style={{ gridTemplateColumns: `56px repeat(${columns.length}, minmax(${view === 'day' ? 150 : 110}px, 1fr))` }}>
+        <div
+          className="cal-grid"
+          style={{
+            gridTemplateColumns: `56px repeat(${columns.length}, minmax(${view === 'day' ? 150 : 110}px, 1fr))`,
+          }}
+        >
           <div className="cal-corner" />
           {columns.map((col) => {
             const s = staffById.get(col.staffId);
             return (
-              <div key={col.key} className={`cal-colhead ${col.date === today && view === 'week' ? 'today' : ''}`}>
+              <div
+                key={col.key}
+                className={`cal-colhead ${col.date === today && view === 'week' ? 'today' : ''}`}
+              >
                 {view === 'day' && s ? (
                   <>
                     <Avatar name={s.name} color={s.color} size={28} />
@@ -264,7 +338,9 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
           </div>
 
           {columns.map((col) => {
-            const work = cal.data?.working.find((w) => w.staffId === col.staffId && w.date === col.date)?.intervals ?? [];
+            const work =
+              cal.data?.working.find((w) => w.staffId === col.staffId && w.date === col.date)?.intervals ??
+              [];
             return (
               <div
                 key={col.key}
@@ -281,7 +357,11 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
                   <span key={h} className="cal-hline" style={{ top: (h - startHour) * 60 * PPM }} />
                 ))}
                 {work.map((w) => (
-                  <div key={w.start} className="cal-work" style={{ top: top(w.start), height: ((w.end - w.start) / 60_000) * PPM }} />
+                  <div
+                    key={w.start}
+                    className="cal-work"
+                    style={{ top: top(w.start), height: ((w.end - w.start) / 60_000) * PPM }}
+                  />
                 ))}
                 {offIn(col).map((o) => {
                   const dayStart = zonedToUtc(col.date, 0, tz);
@@ -319,7 +399,7 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
                       tabIndex={0}
                       data-testid="cal-booking"
                       data-code={b.code}
-                      className={`cal-bk st-${b.status} ${isDrag && drag.moved ? 'dragging' : ''} ${p ? 'saving' : ''}`}
+                      className={`cal-bk st-${b.status} ${dur < 40 ? 'short' : ''} ${isDrag && drag.moved ? 'dragging' : ''} ${p ? 'saving' : ''}`}
                       style={{
                         top: top(start),
                         height: Math.max(22, dur * PPM - 2),
@@ -337,19 +417,31 @@ export function CalendarView({ catalog, me }: { catalog: CatalogDTO; me: AdminMe
                         {formatHm(utcToZoned(start, tz).minute + (isDrag ? drag.deltaMin : 0))}
                       </span>
                       <span className="cal-bk-name">{b.customer.name}</span>
-                      {dur >= 40 && <span className="cal-bk-what">{b.items.map((i) => pickText(i.name, lang)).join(' + ')}</span>}
+                      {dur >= 40 && (
+                        <span className="cal-bk-what">
+                          {b.items.map((i) => pickText(i.name, lang)).join(' + ')}
+                        </span>
+                      )}
                       {b.runningLateMin ? <span className="cal-bk-late">+{b.runningLateMin}′</span> : null}
                     </motion.div>
                   );
                 })}
-                {drag?.moved && drag.colKey === col.key && drag.origColKey !== col.key && <div className="cal-drop" />}
+                {drag?.moved && drag.colKey === col.key && drag.origColKey !== col.key && (
+                  <div className="cal-drop" />
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      <BookingDrawer id={openId} catalog={catalog} me={me} onClose={() => setOpenId(null)} onChanged={cal.reload} />
+      <BookingDrawer
+        id={openId}
+        catalog={catalog}
+        me={me}
+        onClose={() => setOpenId(null)}
+        onChanged={cal.reload}
+      />
       <NewEntryDialog
         preset={preset}
         catalog={catalog}

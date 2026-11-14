@@ -7,8 +7,8 @@
  * Inside Telegram the surface colours come from themeParams; brand colours stay.
  */
 :root {
-  --font-display: 'Unbounded Variable', 'Unbounded', system-ui, sans-serif;
-  --font-ui: 'Onest Variable', 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: "Unbounded Variable", "Unbounded", system-ui, sans-serif;
+  --font-ui: "Onest Variable", "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --cobalt: #2346d4;
   --cobalt-ink: #1a3299;
@@ -42,7 +42,7 @@
   color-scheme: light;
 }
 
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
   --cobalt: #6f8bff;
   --cobalt-ink: #9db0ff;
   --firuza: #2fd0c1;

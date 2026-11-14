@@ -1,9 +1,9 @@
 import { formatHm, formatMoney, parseHm, pickText, zonedToUtc } from '@navbat/core';
 import { useEffect, useState } from 'react';
+import { quote } from '../app/pickers';
 import type { AdminMe, CatalogDTO, TimeOffDTO } from '../backend/types';
 import { errorText, useI18n } from '../i18n';
 import { Sheet, useBackend, useTime, useToast } from '../lib';
-import { quote } from '../app/pickers';
 import { useAdminI18n } from './strings';
 
 export type NewEntryPreset =
@@ -30,7 +30,9 @@ export function NewEntryDialog({
   const { a, lang } = useAdminI18n();
   const tz = catalog.business.timezone;
   const time = useTime(tz);
-  const masters = catalog.staff.filter((s) => s.bookable && s.active && (me.role !== 'master' || s.id === me.staffId));
+  const masters = catalog.staff.filter(
+    (s) => s.bookable && s.active && (me.role !== 'master' || s.id === me.staffId),
+  );
   const [staffId, setStaffId] = useState('');
   const [date, setDate] = useState('');
   const [start, setStart] = useState('10:00');
@@ -88,7 +90,12 @@ export function NewEntryDialog({
         <p className="muted">
           {time.hm(o.startAt)}–{time.hm(o.endAt)}
         </p>
-        <button type="button" className="btn danger" disabled={busy} onClick={() => run(() => backend.deleteTimeOff(o.id), a.saved)}>
+        <button
+          type="button"
+          className="btn danger"
+          disabled={busy}
+          onClick={() => run(() => backend.deleteTimeOff(o.id), a.saved)}
+        >
           {a.unblock}
         </button>
       </Sheet>
@@ -104,7 +111,11 @@ export function NewEntryDialog({
           onSubmit={(e) => {
             e.preventDefault();
             if (preset.kind === 'block') {
-              void run(() => backend.createTimeOff({ staffId, start: at(start), end: at(end), reason: reason || null }), a.blocked);
+              void run(
+                () =>
+                  backend.createTimeOff({ staffId, start: at(start), end: at(end), reason: reason || null }),
+                a.blocked,
+              );
             } else {
               void run(
                 () =>
@@ -146,7 +157,11 @@ export function NewEntryDialog({
               </label>
               <label className="field span2">
                 <span>{a.reason}</span>
-                <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Training, doctor…" />
+                <input
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Training, doctor…"
+                />
               </label>
             </>
           ) : (
@@ -167,7 +182,11 @@ export function NewEntryDialog({
                       <input
                         type="checkbox"
                         checked={serviceIds.includes(s.id)}
-                        onChange={() => setServiceIds((x) => (x.includes(s.id) ? x.filter((y) => y !== s.id) : [...x, s.id]))}
+                        onChange={() =>
+                          setServiceIds((x) =>
+                            x.includes(s.id) ? x.filter((y) => y !== s.id) : [...x, s.id],
+                          )
+                        }
                       />
                       {pickText(s.name, lang)}
                     </label>
@@ -180,11 +199,18 @@ export function NewEntryDialog({
               </label>
               <label className="field">
                 <span>{a.phone}</span>
-                <input name="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
+                <input
+                  name="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+998 90 123 45 67"
+                />
               </label>
               {services.length > 0 && (
                 <p className="fine span2">
-                  {formatHm(parseHmSafe(start))}–{formatHm(parseHmSafe(start) + q.minutes)} · {formatMoney(q.price, lang)}
+                  {formatHm(parseHmSafe(start))}–{formatHm(parseHmSafe(start) + q.minutes)} ·{' '}
+                  {formatMoney(q.price, lang)}
                 </p>
               )}
             </>
@@ -193,7 +219,12 @@ export function NewEntryDialog({
             <button type="button" className="btn ghost" onClick={onClose}>
               {t.close}
             </button>
-            <button type="submit" className="btn" disabled={busy || (preset.kind === 'booking' && (!serviceIds.length || !name.trim()))} data-testid="new-entry-submit">
+            <button
+              type="submit"
+              className="btn"
+              disabled={busy || (preset.kind === 'booking' && (!serviceIds.length || !name.trim()))}
+              data-testid="new-entry-submit"
+            >
               {a.create}
             </button>
           </div>

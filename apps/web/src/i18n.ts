@@ -1,4 +1,4 @@
-import { type Lang, isLang, langFromTelegram } from '@navbat/core';
+import { isLang, type Lang, langFromTelegram } from '@navbat/core';
 import { createContext, useContext } from 'react';
 
 const uz = {
@@ -32,6 +32,7 @@ const uz = {
   depositHint: (p: number) => `Navbatni ushlab turish uchun narxning ${p}% qismi oldindan toʻlanadi.`,
   continue: 'Davom etish',
   pickTimeFirst: 'Vaqtni tanlang',
+  pickServiceFirst: 'Xizmatni tanlang',
   confirmBook: 'Navbatni olish',
   payAndBook: (amount: string) => `${amount} toʻlash`,
   services: (n: number) => `${n} ta xizmat`,
@@ -77,7 +78,8 @@ const uz = {
   payNow: 'Toʻlash',
   // payment sheet
   checkoutTitle: 'Sandbox toʻlov',
-  checkoutHint: 'Demo: haqiqiy pul yechilmaydi. Payme, Click va Telegram Stars adapterlari xuddi shu interfeys orqali ulanadi.',
+  checkoutHint:
+    'Demo: haqiqiy pul yechilmaydi. Payme, Click va Telegram Stars adapterlari xuddi shu interfeys orqali ulanadi.',
   pay: 'Toʻlash',
   paid: 'Toʻlandi',
   // errors
@@ -131,6 +133,7 @@ const ru: Dict = {
   depositHint: (p) => `Чтобы удержать время, вносится ${p}% стоимости.`,
   continue: 'Продолжить',
   pickTimeFirst: 'Выберите время',
+  pickServiceFirst: 'Выберите услугу',
   confirmBook: 'Записаться',
   payAndBook: (amount) => `Оплатить ${amount}`,
   services: (n) => `Услуг: ${n}`,
@@ -173,7 +176,8 @@ const ru: Dict = {
   moved: 'Запись перенесена',
   payNow: 'Оплатить',
   checkoutTitle: 'Sandbox-оплата',
-  checkoutHint: 'Демо: реальные деньги не списываются. Payme, Click и Telegram Stars подключаются через тот же интерфейс.',
+  checkoutHint:
+    'Демо: реальные деньги не списываются. Payme, Click и Telegram Stars подключаются через тот же интерфейс.',
   pay: 'Оплатить',
   paid: 'Оплачено',
   errors: {
@@ -224,6 +228,7 @@ const en: Dict = {
   depositHint: (p) => `${p}% of the price is paid upfront to hold your time.`,
   continue: 'Continue',
   pickTimeFirst: 'Pick a time',
+  pickServiceFirst: 'Choose a service',
   confirmBook: 'Book this time',
   payAndBook: (amount) => `Pay ${amount}`,
   services: (n) => `${n} services`,

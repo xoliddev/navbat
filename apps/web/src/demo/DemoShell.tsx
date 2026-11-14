@@ -1,5 +1,5 @@
 import type { Lang } from '@navbat/core';
-import { Suspense, lazy, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { MiniApp } from '../app/MiniApp';
 import type { DemoBackend, DemoRole } from '../backend/demo';
 import { useI18n } from '../i18n';
@@ -9,7 +9,19 @@ import '../styles/demo.css';
 
 const AdminApp = lazy(() => import('../admin/AdminApp').then((m) => ({ default: m.AdminApp })));
 
-const COPY: Record<Lang, { badge: string; customer: string; admin: string; reset: string; app: string; chat: string; role: string; roles: Record<DemoRole, string> }> = {
+const COPY: Record<
+  Lang,
+  {
+    badge: string;
+    customer: string;
+    admin: string;
+    reset: string;
+    app: string;
+    chat: string;
+    role: string;
+    roles: Record<DemoRole, string>;
+  }
+> = {
   uz: {
     badge: 'Demo rejim — hammasi brauzeringizda ishlaydi',
     customer: 'Mijoz ilovasi',
@@ -42,7 +54,15 @@ const COPY: Record<Lang, { badge: string; customer: string; admin: string; reset
   },
 };
 
-export function DemoShell({ backend, hash, launchHash }: { backend: DemoBackend; hash: string; launchHash: string }) {
+export function DemoShell({
+  backend,
+  hash,
+  launchHash,
+}: {
+  backend: DemoBackend;
+  hash: string;
+  launchHash: string;
+}) {
   const { lang } = useI18n();
   const c = COPY[lang];
   const isAdmin = hash.startsWith('#/admin');
@@ -100,20 +120,37 @@ export function DemoShell({ backend, hash, launchHash }: { backend: DemoBackend;
           <button type="button" className="btn small ghost" onClick={reset}>
             {c.reset}
           </button>
-          <a className="btn small ghost" href="https://github.com/xoliddev/navbat" target="_blank" rel="noreferrer">
+          <a
+            className="btn small ghost"
+            href="https://github.com/xoliddev/navbat"
+            target="_blank"
+            rel="noreferrer"
+          >
             GitHub
           </a>
         </div>
       </header>
 
       {isAdmin ? (
-        <Suspense fallback={<div className="boot"><div className="spinner" /></div>}>
+        <Suspense
+          fallback={
+            <div className="boot">
+              <div className="spinner" />
+            </div>
+          }
+        >
           <AdminApp key={role} hash={hash} embedded />
         </Suspense>
       ) : (
         <div className="demo-stage">
           <div className="demo-tabs" role="tablist">
-            <button type="button" role="tab" aria-selected={pane === 'app'} className={pane === 'app' ? 'on' : ''} onClick={() => setPane('app')}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={pane === 'app'}
+              className={pane === 'app' ? 'on' : ''}
+              onClick={() => setPane('app')}
+            >
               {c.app}
             </button>
             <button
@@ -129,7 +166,11 @@ export function DemoShell({ backend, hash, launchHash }: { backend: DemoBackend;
           </div>
           <div className={`phone ${pane === 'app' ? 'show' : ''}`}>
             <div className="phone-screen" id="phone-screen">
-              <MiniApp key={appKey} startParam={new URLSearchParams(window.location.search).get('startapp')} hash={launchHash} />
+              <MiniApp
+                key={appKey}
+                startParam={new URLSearchParams(window.location.search).get('startapp')}
+                hash={launchHash}
+              />
             </div>
           </div>
           <div className={`chat-pane ${pane === 'chat' ? 'show' : ''}`}>

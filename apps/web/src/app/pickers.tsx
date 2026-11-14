@@ -1,8 +1,9 @@
 import {
-  type Lang,
   addDays,
   formatDuration,
   formatMoney,
+  isoWeekday,
+  type Lang,
   monthDates,
   monthName,
   parseLocalDate,
@@ -10,9 +11,8 @@ import {
   todayIn,
   utcToZoned,
   weekdayShort,
-  isoWeekday,
 } from '@navbat/core';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import type { CatalogDTO, DayHeatDTO, ServiceDTO, SlotDTO, StaffDTO } from '../backend/types';
 import { useI18n } from '../i18n';
@@ -48,7 +48,9 @@ export function ServicePicker({
   onlyStaff: StaffDTO | null;
 }) {
   const { t, lang } = useI18n();
-  const services = catalog.services.filter((s) => !onlyStaff || onlyStaff.services.some((x) => x.serviceId === s.id));
+  const services = catalog.services.filter(
+    (s) => !onlyStaff || onlyStaff.services.some((x) => x.serviceId === s.id),
+  );
   return (
     <div className="step">
       <h1 className="step-title">{t.chooseServices}</h1>
@@ -77,7 +79,14 @@ export function ServicePicker({
                     >
                       <span className="svc-check" aria-hidden>
                         <svg viewBox="0 0 16 16" width="14" height="14">
-                          <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path
+                            d="M3.5 8.5l3 3 6-7"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </span>
                       <span className="svc-body">
@@ -133,7 +142,12 @@ export function MasterPicker({
               <svg viewBox="0 0 24 24" width="22" height="22">
                 <circle cx="8" cy="9" r="3" fill="currentColor" />
                 <circle cx="16" cy="9" r="3" fill="currentColor" opacity=".6" />
-                <path d="M2.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M11 19c.8-3 2.6-4.5 5-4.5s4.7 1.5 5.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                <path
+                  d="M2.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M11 19c.8-3 2.6-4.5 5-4.5s4.7 1.5 5.5 4.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
               </svg>
             </span>
             <span className="master-body">
@@ -167,7 +181,8 @@ export function MasterPicker({
                   <span className="master-rating">
                     {m.rating ? (
                       <>
-                        <Stars value={m.rating} /> <b>{m.rating.toFixed(1)}</b> <span>{t.reviews(m.reviewCount)}</span>
+                        <Stars value={m.rating} /> <b>{m.rating.toFixed(1)}</b>{' '}
+                        <span>{t.reviews(m.reviewCount)}</span>
                       </>
                     ) : (
                       <span>{t.noReviews}</span>
@@ -249,9 +264,9 @@ export function Heatmap({
           ›
         </button>
       </div>
-      <div className="heat-grid" role="grid">
+      <div className="heat-grid">
         {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-          <span key={d} className="heat-wd" role="columnheader">
+          <span key={d} className="heat-wd">
             {weekdayShort(d, lang)}
           </span>
         ))}
@@ -266,10 +281,9 @@ export function Heatmap({
             <button
               key={d}
               type="button"
-              role="gridcell"
               className={`heat-day lvl-${level} ${selected === d ? 'on' : ''}`}
               disabled={!enabled}
-              aria-selected={selected === d}
+              aria-pressed={selected === d}
               aria-label={`${d}${enabled ? '' : `, ${t.closedDay}`}`}
               data-testid={`day-${d}`}
               onClick={() => {
@@ -383,10 +397,7 @@ export function DateTimePicker({
   }, [firstDate, value.date]);
 
   const heat = useAsync(() => backend.availability({ serviceIds, staffId, month }), [key, month]);
-  const slots = useAsync(
-    async () => (date ? backend.slots({ serviceIds, staffId, date }) : []),
-    [key, date],
-  );
+  const slots = useAsync(async () => (date ? backend.slots({ serviceIds, staffId, date }) : []), [key, date]);
 
   return (
     <div className="step">
@@ -401,30 +412,27 @@ export function DateTimePicker({
         maxMonth={horizonEnd}
         lang={lang}
       />
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={date ?? 'none'}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-        >
-          {slots.loading && !slots.data ? (
-            <div className="slot-skeleton">
-              {Array.from({ length: 8 }, (_, i) => (
-                <span key={i} className="skeleton" />
-              ))}
-            </div>
-          ) : (
-            <SlotGrid
-              slots={slots.data ?? []}
-              tz={tz}
-              selected={value.slot?.start ?? null}
-              onPick={(s) => onChange({ date, slot: s })}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        key={date ?? 'none'}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+      >
+        {slots.loading ? (
+          <div className="slot-skeleton">
+            {Array.from({ length: 8 }, (_, i) => (
+              <span key={i} className="skeleton" />
+            ))}
+          </div>
+        ) : (
+          <SlotGrid
+            slots={slots.data ?? []}
+            tz={tz}
+            selected={value.slot?.start ?? null}
+            onPick={(s) => onChange({ date, slot: s })}
+          />
+        )}
+      </motion.div>
     </div>
   );
 }

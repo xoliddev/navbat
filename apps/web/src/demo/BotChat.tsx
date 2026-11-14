@@ -1,4 +1,12 @@
-import { type ButtonSpec, type Lang, type NotificationPayload, formatTimeIn, isLang, messagesFor, renderNotification } from '@navbat/core';
+import {
+  type ButtonSpec,
+  formatTimeIn,
+  isLang,
+  type Lang,
+  messagesFor,
+  type NotificationPayload,
+  renderNotification,
+} from '@navbat/core';
 import { AnimatePresence, motion } from 'motion/react';
 import { useContext, useEffect, useRef, useState } from 'react';
 import type { DemoBackend } from '../backend/demo';
@@ -9,7 +17,10 @@ import { DataVersionContext, useAsync, useToast } from '../lib';
 const VISITOR = 1001;
 const APP_URL = 'https://t.me/navbat_demo_bot/app';
 
-const COPY: Record<Lang, { title: string; scheduled: string; sendNow: string; empty: string; you: string; hint: string; at: string }> = {
+const COPY: Record<
+  Lang,
+  { title: string; scheduled: string; sendNow: string; empty: string; you: string; hint: string; at: string }
+> = {
   uz: {
     title: 'Telegram bot',
     scheduled: 'Rejalashtirilgan',
@@ -53,10 +64,18 @@ function Bubble({
   const lang = isLang(job.lang) ? job.lang : 'uz';
   const r = renderNotification(job.payload as NotificationPayload, lang, APP_URL);
   return (
-    <motion.div className="bubble-wrap" layout initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
+    <motion.div
+      className="bubble-wrap"
+      layout
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+    >
       <div className="bubble" data-testid="bot-message" data-kind={job.kind}>
-        {/* Templates escape every user-provided value; only <b>, <i>, <code> remain. */}
-        <div className="bubble-text" dangerouslySetInnerHTML={{ __html: r.text.replace(/\n/g, '<br/>') }} />
+        <div
+          className="bubble-text"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: our own templates; every user value is escaped, only <b>/<i>/<code> remain
+          dangerouslySetInnerHTML={{ __html: r.text.replace(/\n/g, '<br/>') }}
+        />
         <span className="bubble-time">{formatTimeIn(job.sentAt ?? job.sendAt, tz)}</span>
       </div>
       {r.buttons.length > 0 && (
@@ -64,7 +83,13 @@ function Bubble({
           {r.buttons.map((row, i) => (
             <div key={i} className="kb-row">
               {row.map((b) => (
-                <button key={b.text} type="button" className="kb-btn" disabled={busy} onClick={() => onButton(b)}>
+                <button
+                  key={b.text}
+                  type="button"
+                  className="kb-btn"
+                  disabled={busy}
+                  onClick={() => onButton(b)}
+                >
                   {b.text}
                 </button>
               ))}
@@ -76,7 +101,17 @@ function Bubble({
   );
 }
 
-export function BotChat({ backend, tz, businessName, onOpenApp }: { backend: DemoBackend; tz: string; businessName: string; onOpenApp: () => void }) {
+export function BotChat({
+  backend,
+  tz,
+  businessName,
+  onOpenApp,
+}: {
+  backend: DemoBackend;
+  tz: string;
+  businessName: string;
+  onOpenApp: () => void;
+}) {
   const { lang, t } = useI18n();
   const toast = useToast();
   const c = COPY[lang];
@@ -88,6 +123,7 @@ export function BotChat({ backend, tz, businessName, onOpenApp }: { backend: Dem
   const scroller = useRef<HTMLDivElement>(null);
 
   // The demo's stand-in for the bot worker: deliver due messages every 2 seconds.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `version` re-triggers loading after any change
   useEffect(() => {
     let alive = true;
     const load = async () => {
@@ -106,6 +142,7 @@ export function BotChat({ backend, tz, businessName, onOpenApp }: { backend: Dem
   const sent = jobs.filter((j) => j.status === 'sent').sort((a, b) => (a.sentAt ?? 0) - (b.sentAt ?? 0));
   const scheduled = jobs.filter((j) => j.status === 'pending').sort((a, b) => a.sendAt - b.sendAt);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll when a new message arrives
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
   }, [sent.length]);
@@ -140,7 +177,12 @@ export function BotChat({ backend, tz, businessName, onOpenApp }: { backend: Dem
           <strong>Navbat bot</strong>
           <span className="muted">@navbat_demo_bot</span>
         </div>
-        <select className="chat-switch" value={chatId} onChange={(e) => setChatId(Number(e.target.value))} aria-label="Chat">
+        <select
+          className="chat-switch"
+          value={chatId}
+          onChange={(e) => setChatId(Number(e.target.value))}
+          aria-label="Chat"
+        >
           <option value={VISITOR}>{c.you}</option>
           {(chats.data ?? []).map((s) => (
             <option key={s.chatId} value={s.chatId}>
@@ -158,7 +200,11 @@ export function BotChat({ backend, tz, businessName, onOpenApp }: { backend: Dem
             </div>
             <div className="bubble-wrap">
               <div className="bubble">
-                <div className="bubble-text" dangerouslySetInnerHTML={{ __html: welcome.replace(/\n/g, '<br/>') }} />
+                <div
+                  className="bubble-text"
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: rendered from our own escaped template
+                  dangerouslySetInnerHTML={{ __html: welcome.replace(/\n/g, '<br/>') }}
+                />
               </div>
               <div className="kb">
                 <div className="kb-row">
@@ -184,7 +230,11 @@ export function BotChat({ backend, tz, businessName, onOpenApp }: { backend: Dem
                 <span>
                   <b>{j.kind.replace(/_/g, ' ')}</b>
                   <small>
-                    {c.at} {new Date(j.sendAt).toLocaleString(lang === 'en' ? 'en-GB' : lang === 'ru' ? 'ru-RU' : 'uz-UZ', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {c.at}{' '}
+                    {new Date(j.sendAt).toLocaleString(
+                      lang === 'en' ? 'en-GB' : lang === 'ru' ? 'ru-RU' : 'uz-UZ',
+                      { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
+                    )}
                   </small>
                 </span>
                 <button type="button" className="btn small quiet" onClick={() => backend.deliverNow(j.id)}>

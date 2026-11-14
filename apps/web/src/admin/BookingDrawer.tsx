@@ -117,25 +117,46 @@ export function BookingDrawer({
           </dl>
           <div className="drawer-actions">
             {b.status === 'pending' && (
-              <button type="button" className="btn small" disabled={busy} onClick={() => act(() => backend.adminStatus(b.id, 'confirm'), a.statusChanged)}>
+              <button
+                type="button"
+                className="btn small"
+                disabled={busy}
+                onClick={() => act(() => backend.adminStatus(b.id, 'confirm'), a.statusChanged)}
+              >
                 {a.confirm}
               </button>
             )}
             {b.status === 'confirmed' && now >= b.startAt && (
               <>
-                <button type="button" className="btn small" disabled={busy} onClick={() => act(() => backend.adminStatus(b.id, 'complete'), a.statusChanged)}>
+                <button
+                  type="button"
+                  className="btn small"
+                  disabled={busy}
+                  onClick={() => act(() => backend.adminStatus(b.id, 'complete'), a.statusChanged)}
+                >
                   {a.complete}
                 </button>
-                <button type="button" className="btn small ghost" disabled={busy} onClick={() => act(() => backend.adminStatus(b.id, 'no_show'), a.statusChanged)}>
+                <button
+                  type="button"
+                  className="btn small ghost"
+                  disabled={busy}
+                  onClick={() => act(() => backend.adminStatus(b.id, 'no_show'), a.statusChanged)}
+                >
                   {a.noShow}
                 </button>
               </>
             )}
-            {(b.status === 'confirmed' || b.status === 'pending') && (me.role !== 'master' || b.staffId === me.staffId) && (
-              <button type="button" className="btn small danger" data-testid="admin-cancel" onClick={() => setAskCancel(true)}>
-                {a.cancelBooking}
-              </button>
-            )}
+            {(b.status === 'confirmed' || b.status === 'pending') &&
+              (me.role !== 'master' || b.staffId === me.staffId) && (
+                <button
+                  type="button"
+                  className="btn small danger"
+                  data-testid="admin-cancel"
+                  onClick={() => setAskCancel(true)}
+                >
+                  {a.cancelBooking}
+                </button>
+              )}
           </div>
           {askCancel && (
             <div className="drawer-cancel">

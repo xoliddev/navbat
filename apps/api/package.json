@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
-    "build": "esbuild src/main.ts src/cli.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --packages=external --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
+    "build": "esbuild src/main.ts src/cli.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --external:pg-native --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
     "migrate": "tsx src/cli.ts migrate",
     "seed": "tsx src/cli.ts seed",
     "typecheck": "tsc -p tsconfig.json"

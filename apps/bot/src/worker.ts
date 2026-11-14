@@ -2,6 +2,8 @@
  * Outbox worker: claims due notification jobs, renders them with the shared templates and
  * sends them. Also queues the masters' morning digests. Safe to run in several replicas.
  */
+
+import { writeFile } from 'node:fs/promises';
 import { type Lang, type NotificationPayload, renderNotification } from '@navbat/core';
 import {
   type AppContext,
@@ -73,7 +75,7 @@ export async function queueDigests(ctx: AppContext): Promise<number> {
 }
 
 /** Runs forever: one tick every `intervalMs`. Returns a stop function. */
-export function startWorker(deps: WorkerDeps, intervalMs = 15_000): () => void {
+export function startWorker(deps: WorkerDeps, intervalMs = 15_000, heartbeatFile?: string): () => void {
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const tick = async () => {
@@ -82,6 +84,8 @@ export function startWorker(deps: WorkerDeps, intervalMs = 15_000): () => void {
       let r: TickResult;
       do r = await processDueNotifications(deps);
       while (!stopped && r.sent + r.failed + r.skipped === 25);
+      // Docker healthcheck reads the mtime of this file.
+      if (heartbeatFile) await writeFile(heartbeatFile, String(Date.now())).catch(() => undefined);
     } catch (e) {
       console.error('Worker tick failed', e);
     }

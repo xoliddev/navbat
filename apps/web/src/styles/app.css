@@ -114,7 +114,7 @@
   position: relative;
 }
 .stepper-bar::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: var(--accent);
@@ -200,7 +200,9 @@
   background: var(--surface);
   text-align: left;
   box-shadow: var(--shadow-1);
-  transition: border-color 0.18s, transform 0.12s var(--ease-out);
+  transition:
+    border-color 0.18s,
+    transform 0.12s var(--ease-out);
 }
 .svc:active,
 .master:active,
@@ -220,7 +222,9 @@
   place-items: center;
   color: transparent;
   flex: none;
-  transition: background-color 0.18s, border-color 0.18s;
+  transition:
+    background-color 0.18s,
+    border-color 0.18s;
 }
 .svc.on .svc-check {
   background: var(--accent);
@@ -425,7 +429,9 @@
   background: var(--surface);
   font-size: 15px;
   font-weight: 500;
-  transition: background-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
 }
 .slot:active {
   transform: scale(0.96);
@@ -509,7 +515,7 @@
   background: var(--ink);
   z-index: 2;
 }
-:root[data-theme='dark'] .ticket-slot {
+:root[data-theme="dark"] .ticket-slot {
   background: #000;
 }
 .ticket-clip {
@@ -526,10 +532,12 @@
   box-shadow: var(--shadow-2);
   -webkit-mask:
     radial-gradient(circle var(--notch) at 0 var(--perf-y), transparent 98%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle var(--notch) at 100% var(--perf-y), transparent 98%, #000) right / 51% 100% no-repeat;
+    radial-gradient(circle var(--notch) at 100% var(--perf-y), transparent 98%, #000) right / 51% 100%
+    no-repeat;
   mask:
     radial-gradient(circle var(--notch) at 0 var(--perf-y), transparent 98%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle var(--notch) at 100% var(--perf-y), transparent 98%, #000) right / 51% 100% no-repeat;
+    radial-gradient(circle var(--notch) at 100% var(--perf-y), transparent 98%, #000) right / 51% 100%
+    no-repeat;
   --perf-y: 132px;
 }
 .ticket-top {
@@ -542,7 +550,11 @@
   grid-template-rows: auto auto 1fr;
 }
 .ticket.status-pending .ticket-top {
-  background: repeating-linear-gradient(-45deg, var(--saffron) 0 14px, color-mix(in srgb, var(--saffron) 80%, #fff) 14px 28px);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--saffron) 0 14px,
+    color-mix(in srgb, var(--saffron) 80%, #fff) 14px 28px
+  );
 }
 .ticket.status-cancelled .ticket-top,
 .ticket.status-no_show .ticket-top {
@@ -698,7 +710,9 @@
   line-height: 1;
   color: var(--line);
   padding: 2px;
-  transition: transform 0.12s, color 0.12s;
+  transition:
+    transform 0.12s,
+    color 0.12s;
 }
 .rate-stars button.on {
   color: var(--saffron);
