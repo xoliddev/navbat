@@ -14,6 +14,9 @@ export interface PgOptions {
 
 export function createPgDb(opts: PgOptions): { db: Kysely<DB>; pool: pg.Pool } {
   const pool = new pg.Pool({ connectionString: opts.connectionString, max: opts.max ?? 10 });
+  // An idle client can be terminated by the server (restart, failover, DROP DATABASE … FORCE).
+  // pg emits that on the pool; without a listener Node would crash the process.
+  pool.on('error', (e) => console.error(`[pg] idle client error: ${e.message}`));
   const db = new Kysely<DB>({ dialect: new PostgresDialect({ pool }) });
   return { db, pool };
 }
