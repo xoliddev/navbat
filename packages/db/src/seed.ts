@@ -655,14 +655,16 @@ export async function seedDemo(db: Kysely<DB>, opts: SeedOptions): Promise<SeedR
   const vStart = zonedToUtc(visitDate, h(10) + 30, tz);
   const vEnd = vStart + 45 * 60_000;
   const visitorPast = crypto.randomUUID();
-  const clash = bookings.find(
-    (b) =>
+  // free the slot: every generated booking that overlaps it (there can be more than one) is cancelled
+  for (const b of bookings) {
+    if (
       b.staff_id === masterIds[0] &&
       b.status !== 'cancelled' &&
       (b.occupied_start as Date).getTime() < vEnd &&
-      (b.occupied_end as Date).getTime() > vStart,
-  );
-  if (clash) clash.status = 'cancelled';
+      (b.occupied_end as Date).getTime() > vStart
+    )
+      b.status = 'cancelled';
+  }
   bookings.push({
     id: visitorPast,
     business_id: businessId,
