@@ -5,6 +5,7 @@ import type { DemoBackend, DemoRole } from '../backend/demo';
 import { useI18n } from '../i18n';
 import { useAsync } from '../lib';
 import { BotChat } from './BotChat';
+import { PhoneStatus } from './PhoneStatus';
 
 const AdminApp = lazy(() => import('../admin/AdminApp').then((m) => ({ default: m.AdminApp })));
 
@@ -164,6 +165,8 @@ export function DemoShell({
             </button>
           </div>
           <div className={`phone ${pane === 'app' ? 'show' : ''}`}>
+            <span className="phone-island" aria-hidden="true" />
+            <PhoneStatus />
             <div className="phone-screen" id="phone-screen">
               <MiniApp
                 key={appKey}
@@ -171,6 +174,7 @@ export function DemoShell({
                 hash={launchHash}
               />
             </div>
+            <span className="phone-homebar" aria-hidden="true" />
           </div>
           <div className={`chat-pane ${pane === 'chat' ? 'show' : ''}`}>
             {catalog.data && (

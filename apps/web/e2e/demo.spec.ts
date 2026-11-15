@@ -95,7 +95,8 @@ test('customer books a visit and it appears in the admin calendar', async ({ pag
 test('admin drags a booking to a new time and the customer is notified', async ({ page }, info) => {
   test.skip(info.project.name === 'mobile', 'drag-and-drop is a desktop interaction');
   await openApp(page);
-  const { code, date } = await bookFirstSlot(page);
+  // a later day: today's seeded calendar can be fully booked around the first free slot
+  const { code, date } = await bookFirstSlot(page, { laterDay: true });
   await page.goto(`./#/admin/calendar/${date}`);
   const block = page.locator(`[data-testid="cal-booking"][data-code="${code}"]`);
   await expect(block).toBeVisible();
@@ -103,8 +104,8 @@ test('admin drags a booking to a new time and the customer is notified', async (
   const before = (await block.locator('.cal-bk-time').textContent())!.trim();
 
   let moved = false;
-  // Try a few offsets: some target times may already be taken by seeded bookings.
-  for (const minutes of [120, 180, 240, 60, 300]) {
+  // Try several offsets: some target times are already taken by seeded bookings (it depends on the date).
+  for (const minutes of [120, 180, 240, 60, 300, 90, 150, 210, 270, 360, 30]) {
     const box = (await block.boundingBox())!;
     const x = box.x + box.width / 2;
     const y = box.y + 8;
