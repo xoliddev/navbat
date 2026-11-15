@@ -1,11 +1,34 @@
 import type { Lang } from '@navbat/core';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { MiniApp } from '../app/MiniApp';
 import type { DemoBackend, DemoRole } from '../backend/demo';
 import { useI18n } from '../i18n';
 import { useAsync } from '../lib';
 import { BotChat } from './BotChat';
 import { PhoneStatus } from './PhoneStatus';
+
+/**
+ * The Mini App is laid out for a real phone (375 CSS px). When the desktop phone frame is narrower,
+ * the screen is rendered at 375 px and zoomed to fit, exactly like a real handset with a smaller display.
+ */
+function usePhoneZoom(active: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const phone = ref.current;
+    const screen = phone?.querySelector<HTMLElement>('.phone-screen');
+    if (!phone || !screen) return;
+    const fit = () => {
+      const pad = Number.parseFloat(getComputedStyle(phone).paddingLeft) * 2;
+      const w = phone.getBoundingClientRect().width - pad;
+      screen.style.zoom = pad > 0 && w > 0 && w < 375 ? String(w / 375) : '';
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(phone);
+    return () => ro.disconnect();
+  }, [active]);
+  return ref;
+}
 
 const AdminApp = lazy(() => import('../admin/AdminApp').then((m) => ({ default: m.AdminApp })));
 
@@ -69,6 +92,7 @@ export function DemoShell({
   const [pane, setPane] = useState<'app' | 'chat'>('app');
   const [role, setRole] = useState<DemoRole>(backend.role);
   const [appKey, setAppKey] = useState(0);
+  const phoneRef = usePhoneZoom(!isAdmin);
   const catalog = useAsync(() => backend.catalog(), []);
 
   const reset = async () => {
@@ -164,7 +188,7 @@ export function DemoShell({
               {c.chat}
             </button>
           </div>
-          <div className={`phone ${pane === 'app' ? 'show' : ''}`}>
+          <div ref={phoneRef} className={`phone ${pane === 'app' ? 'show' : ''}`}>
             <span className="phone-island" aria-hidden="true" />
             <PhoneStatus />
             <div className="phone-screen" id="phone-screen">
