@@ -14,6 +14,7 @@ import { PhoneStatus } from './PhoneStatus';
 function usePhoneZoom(active: boolean) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!active) return; // the admin view has no phone frame
     const phone = ref.current;
     const screen = phone?.querySelector<HTMLElement>('.phone-screen');
     if (!phone || !screen) return;
