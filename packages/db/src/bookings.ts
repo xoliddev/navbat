@@ -212,6 +212,9 @@ async function bookedMinutesOn(
   return out;
 }
 
+/** Upper bound of active future bookings a single customer may hold in one business. */
+export const MAX_UPCOMING_PER_CUSTOMER = 10;
+
 export interface CreateBookingInput {
   businessId: string;
   serviceIds: string[];
@@ -307,6 +310,22 @@ export async function createBooking(ctx: AppContext, input: CreateBookingInput):
   const tz = business.timezone;
   const now = ctx.now();
   const enforce = input.actor.kind === 'customer';
+  if (input.actor.kind === 'customer') {
+    // One Telegram account must not be able to fill a whole calendar.
+    const upcoming = await db
+      .selectFrom('bookings')
+      .select((eb) => eb.fn.countAll<number>().as('n'))
+      .where('business_id', '=', business.id)
+      .where('customer_id', '=', input.actor.customerId)
+      .where('status', 'in', ['pending', 'confirmed'])
+      .where('end_at', '>', new Date(now))
+      .executeTakeFirst();
+    if (Number(upcoming?.n ?? 0) >= MAX_UPCOMING_PER_CUSTOMER) {
+      throw new DomainError('TOO_MANY_BOOKINGS', 'Too many upcoming bookings', {
+        limit: MAX_UPCOMING_PER_CUSTOMER,
+      });
+    }
+  }
   const services = await loadServiceSpecs(db, business.id, input.serviceIds);
   const candidates = await bookableStaffIds(db, business.id, input.staffId);
   const excluded = new Set<string>();

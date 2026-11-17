@@ -11,7 +11,8 @@ export type ErrorCode =
   | 'CANCEL_WINDOW_PASSED'
   | 'INVALID_TRANSITION'
   | 'REVIEW_NOT_ALLOWED'
-  | 'PAYMENT_FAILED';
+  | 'PAYMENT_FAILED'
+  | 'TOO_MANY_BOOKINGS';
 
 const HTTP_STATUS: Record<ErrorCode, number> = {
   VALIDATION: 400,
@@ -27,6 +28,7 @@ const HTTP_STATUS: Record<ErrorCode, number> = {
   INVALID_TRANSITION: 409,
   REVIEW_NOT_ALLOWED: 422,
   PAYMENT_FAILED: 402,
+  TOO_MANY_BOOKINGS: 429,
 };
 
 /** An expected, user-facing failure of a business rule. */

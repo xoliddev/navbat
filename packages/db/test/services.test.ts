@@ -23,6 +23,7 @@ import {
   listClients,
   listCustomerBookings,
   listNotifications,
+  MAX_UPCOMING_PER_CUSTOMER,
   markFailed,
   markSent,
   migrate,
@@ -592,5 +593,42 @@ describe('tenant isolation and abuse limits', () => {
       ),
     ).toBe('NOT_FOUND');
     expect(await getSchedule(e.db, e.seed.businessId, e.seed.staffIds.masters[0]!)).not.toHaveLength(0);
+  });
+
+  it('caps upcoming bookings per customer so one account cannot fill the calendar', async () => {
+    const e = await setup();
+    let capped = false;
+    outer: for (let d = 1; d <= 25; d++) {
+      for (const hm of ['11:00', '16:00']) {
+        const code = await errorCode(
+          createBooking(e.ctx, {
+            businessId: e.seed.businessId,
+            serviceIds: [e.seed.serviceIds.classic!],
+            staffId: null,
+            start: at(d, hm),
+            actor: visitor(e),
+          }),
+        );
+        if (code === 'TOO_MANY_BOOKINGS') {
+          capped = true;
+          break outer;
+        }
+      }
+    }
+    expect(capped).toBe(true);
+    const upcoming = (await listCustomerBookings(e.db, e.seed.businessId, e.seed.visitorCustomerId)).filter(
+      (b) => ['pending', 'confirmed'].includes(b.status) && b.endAt > NOW,
+    );
+    expect(upcoming).toHaveLength(MAX_UPCOMING_PER_CUSTOMER);
+    // staff are not limited when booking on a customer's behalf
+    const walkIn = await createBooking(e.ctx, {
+      businessId: e.seed.businessId,
+      serviceIds: [e.seed.serviceIds.classic!],
+      staffId: null,
+      start: at(26, '11:00'),
+      actor: owner(e),
+      customer: { name: 'Walk-in' },
+    });
+    expect(walkIn.booking.status).toBe('confirmed');
   });
 });
