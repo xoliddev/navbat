@@ -425,18 +425,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
         return saveStaff(db, b.id, parse(S.staffBody, req.body) as StaffInput);
       });
       r.get('/admin/staff/:id/schedule', async (req) => {
-        const { me } = await staff(req);
+        const { business: b, me } = await staff(req);
         const id = parse(S.slugId, req.params).id;
         if (me.role === 'master' && id !== me.staffId)
           throw new DomainError('FORBIDDEN', 'Not your schedule');
-        return getSchedule(db, id);
+        return getSchedule(db, b.id, id);
       });
       r.put('/admin/staff/:id/schedule', async (req) => {
         const { business: b, me } = await staff(req);
         requirePermission(me, 'catalog.manage');
         const id = parse(S.slugId, req.params).id;
         await saveSchedule(db, b.id, id, parse(S.scheduleBody, req.body).rules);
-        return getSchedule(db, id);
+        return getSchedule(db, b.id, id);
       });
       r.put('/admin/settings', async (req) => {
         const { business: b, me } = await staff(req);

@@ -317,11 +317,11 @@ export async function createDemoBackend(onChange: () => void): Promise<DemoBacke
       await need('staff.manage');
       return mutate(saveStaff(db, businessId, b));
     },
-    schedule: (id) => wrap(getSchedule(db, id)),
+    schedule: (id) => wrap(getSchedule(db, businessId, id)),
     saveSchedule: async (id, rules) => {
       await need('catalog.manage');
       await mutate(saveSchedule(db, businessId, id, rules));
-      return getSchedule(db, id);
+      return getSchedule(db, businessId, id);
     },
     saveSettings: async (b) => {
       await need('settings.manage');

@@ -150,7 +150,15 @@ export async function getCatalog(
   };
 }
 
-export async function getSchedule(db: Db, staffId: string): Promise<ScheduleRuleDTO[]> {
+/** Weekly schedule of one master. Scoped to the business so a staff member of one tenant cannot read another's. */
+export async function getSchedule(db: Db, businessId: string, staffId: string): Promise<ScheduleRuleDTO[]> {
+  const staff = await db
+    .selectFrom('staff')
+    .select('id')
+    .where('id', '=', staffId)
+    .where('business_id', '=', businessId)
+    .executeTakeFirst();
+  if (!staff) throw new DomainError('NOT_FOUND', 'Staff member not found');
   const rows = await db
     .selectFrom('schedule_rules')
     .select(['kind', 'weekday', 'start_min', 'end_min'])

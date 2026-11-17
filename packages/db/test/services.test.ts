@@ -17,6 +17,7 @@ import {
   getCatalog,
   getClient,
   getMonthAvailability,
+  getSchedule,
   getSlots,
   leaveReview,
   listClients,
@@ -557,5 +558,39 @@ describe('notifications outbox', () => {
     expect((await customerFromTelegram(e.db, e.seed.businessId, { id: 777, first_name: 'Ivan' })).isNew).toBe(
       false,
     );
+  });
+});
+
+describe('tenant isolation and abuse limits', () => {
+  async function foreignMaster(e: Env) {
+    const other = await e.db
+      .insertInto('businesses')
+      .values({ slug: 'other-shop', name: 'Other shop' })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+    const staff = await e.db
+      .insertInto('staff')
+      .values({ business_id: other.id, name: 'Foreign master' })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+    await saveSchedule(e.db, other.id, staff.id, [{ kind: 'work', weekday: 1, startMin: 600, endMin: 1200 }]);
+    return staff.id;
+  }
+
+  it("does not read or block another business's master", async () => {
+    const e = await setup();
+    const foreign = await foreignMaster(e);
+    expect(await errorCode(getSchedule(e.db, e.seed.businessId, foreign))).toBe('NOT_FOUND');
+    expect(
+      await errorCode(
+        createTimeOff(e.db, {
+          businessId: e.seed.businessId,
+          staffId: foreign,
+          start: at(1, '10:00'),
+          end: at(1, '12:00'),
+        }),
+      ),
+    ).toBe('NOT_FOUND');
+    expect(await getSchedule(e.db, e.seed.businessId, e.seed.staffIds.masters[0]!)).not.toHaveLength(0);
   });
 });

@@ -110,6 +110,15 @@ export async function createTimeOff(
   },
 ): Promise<TimeOffDTO> {
   if (!(input.end > input.start)) throw new DomainError('VALIDATION', 'End must be after start');
+  if (input.staffId) {
+    const staff = await db
+      .selectFrom('staff')
+      .select('id')
+      .where('id', '=', input.staffId)
+      .where('business_id', '=', input.businessId)
+      .executeTakeFirst();
+    if (!staff) throw new DomainError('NOT_FOUND', 'Staff member not found');
+  }
   const row = await db
     .insertInto('time_off')
     .values({
