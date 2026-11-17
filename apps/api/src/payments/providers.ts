@@ -2,7 +2,7 @@
  * Payment adapters behind the core `PaymentProvider` interface. Keys come from env vars only;
  * the repository ships placeholders. The sandbox is used by the demo and by default in dev.
  */
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import {
   type PaymentIntent,
   type PaymentProvider,
@@ -38,6 +38,14 @@ export interface PaymentConfig {
   stars?: StarsConfig;
 }
 
+/** Constant-time string comparison, so webhook credentials cannot be guessed byte by byte from response timing. */
+function sameSecret(a: string | undefined, b: string): boolean {
+  if (typeof a !== 'string') return false;
+  const x = createHash('sha256').update(a).digest();
+  const y = createHash('sha256').update(b).digest();
+  return timingSafeEqual(x, y);
+}
+
 function reference(prefix: string, bookingId: string): string {
   return `${prefix}_${bookingId.replace(/-/g, '').slice(0, 12)}_${randomUUID().slice(0, 8)}`;
 }
@@ -64,7 +72,7 @@ export class PaymeProvider implements PaymentProvider {
     if (!header?.startsWith('Basic ')) return false;
     const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
     const [login, ...rest] = decoded.split(':');
-    return login === 'Paycom' && rest.join(':') === this.config.key;
+    return login === 'Paycom' && sameSecret(rest.join(':'), this.config.key);
   }
 }
 
@@ -104,7 +112,7 @@ export class ClickProvider implements PaymentProvider {
   }
 
   verify(fields: Record<string, string>): boolean {
-    return fields.service_id === this.config.serviceId && this.sign(fields) === fields.sign_string;
+    return fields.service_id === this.config.serviceId && sameSecret(fields.sign_string, this.sign(fields));
   }
 }
 
